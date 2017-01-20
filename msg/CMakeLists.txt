@@ -126,6 +126,10 @@ set(msg_file_names
 	mount_orientation.msg
 	collision_report.msg
 	low_stack.msg
+	estimator_state.msg
+	estimator_state_std.msg
+	estimator_innov.msg
+	estimator_innov_std.msg
 	)
 
 # Get absolute paths

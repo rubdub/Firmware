@@ -1,1 +1,1 @@
-include(configs/nuttx_px4fmu-v2_ekf2)
+include(configs/nuttx_px4fmu-v2_iekf)
