@@ -11,8 +11,6 @@ else()
 	set(HEXAGON_SDK_ROOT $ENV{HEXAGON_SDK_ROOT})
 endif()
 
-set(config_generate_parameters_scope ALL)
-
 # Get $QC_SOC_TARGET from environment if existing.
 if (DEFINED ENV{QC_SOC_TARGET})
 	set(QC_SOC_TARGET $ENV{QC_SOC_TARGET})

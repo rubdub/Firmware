@@ -1008,6 +1008,9 @@ endfunction()
 #
 #	Input:
 #		BOARD : the board
+#		MODULES : a list of px4 modules used to limit scope of the paramaters
+#		OVERRIDES : A json dict with param names as keys and param default
+# 			overrides as values
 #
 #	Output:
 #		OUT	: the generated xml file
@@ -1018,8 +1021,9 @@ endfunction()
 function(px4_generate_parameters_xml)
 	px4_parse_function_args(
 		NAME px4_generate_parameters_xml
-		ONE_VALUE OUT BOARD SCOPE OVERRIDES
-		REQUIRED OUT BOARD
+		ONE_VALUE OUT BOARD OVERRIDES
+		MULTI_VALUE MODULES
+		REQUIRED MODULES OUT BOARD
 		ARGN ${ARGN})
 	set(path ${PX4_SOURCE_DIR}/src)
 	file(GLOB_RECURSE param_src_files
@@ -1028,10 +1032,11 @@ function(px4_generate_parameters_xml)
 	if (NOT OVERRIDES)
 		set(OVERRIDES "{}")
 	endif()
+	px4_join(OUT module_list  LIST ${MODULES} GLUE ",")
 	add_custom_command(OUTPUT ${OUT}
 		COMMAND ${PYTHON_EXECUTABLE} ${PX4_SOURCE_DIR}/Tools/px_process_params.py
-			-s ${path} --board CONFIG_ARCH_${BOARD} --xml --inject-xml --scope ${SCOPE}
-			--overrides ${OVERRIDES}
+			-s ${path} --board CONFIG_ARCH_${BOARD} --xml --inject-xml
+			--overrides ${OVERRIDES} --modules ${module_list}
 		DEPENDS ${param_src_files} ${PX4_SOURCE_DIR}/Tools/px_process_params.py
 			${PX4_SOURCE_DIR}/Tools/px_generate_params.py
 		)
@@ -1045,36 +1050,36 @@ endfunction()
 #	Generates a source file with all parameters.
 #
 #	Usage:
-#		px4_generate_parameters_source(OUT <list-source-files> XML <param-xml-file> [SCOPE <cmake file for scoping>])
+#		px4_generate_parameters_source(OUT <list-source-files> XML <param-xml-file> MODULES px4 module list)
 #
 #	Input:
 #		XML   : the parameters.xml file
-#		SCOPE : the cmake file used to limit scope of the paramaters
+#		MODULES : a list of px4 modules used to limit scope of the paramaters
 #		DEPS  : target dependencies
 #
 #	Output:
 #		OUT	: the generated source files
 #
 #	Example:
-#		px4_generate_parameters_source(OUT param_files XML parameters.xml SCOPE ${OS}_${BOARD}_${LABEL}.cmake )
+#		px4_generate_parameters_source(OUT param_files XML parameters.xml MODULES lib/controllib modules/ekf2)
 #
 function(px4_generate_parameters_source)
 	px4_parse_function_args(
 		NAME px4_generate_parameters_source
-		ONE_VALUE OUT XML SCOPE DEPS
-		REQUIRED OUT XML
+		ONE_VALUE OUT XML DEPS
+		MULTI_VALUE MODULES
+		REQUIRED MODULES OUT XML
 		ARGN ${ARGN})
 	set(generated_files
 		${CMAKE_CURRENT_BINARY_DIR}/px4_parameters.h
 		${CMAKE_CURRENT_BINARY_DIR}/px4_parameters.c)
 	set_source_files_properties(${generated_files}
 		PROPERTIES GENERATED TRUE)
-	if ("${config_generate_parameters_scope}" STREQUAL "ALL")
-		set(SCOPE "")
-	endif()
+	px4_join(OUT module_list  LIST ${MODULES} GLUE ",")
 	add_custom_command(OUTPUT ${generated_files}
-		COMMAND ${PYTHON_EXECUTABLE} ${PX4_SOURCE_DIR}/Tools/px_generate_params.py ${XML} ${SCOPE}
-		DEPENDS ${XML} ${DEPS} ${SCOPE}
+		COMMAND ${PYTHON_EXECUTABLE} ${PX4_SOURCE_DIR}/Tools/px_generate_params.py
+		--xml ${XML} --modules ${module_list} --dest ${CMAKE_CURRENT_BINARY_DIR}
+		DEPENDS ${XML} ${DEPS}
 		)
 	set(${OUT} ${generated_files} PARENT_SCOPE)
 endfunction()
