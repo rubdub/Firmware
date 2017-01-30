@@ -120,7 +120,7 @@ void IEKF::correctFlow(const optical_flow_s *msg)
 
 	// define R
 	SquareMatrix<float, Y_flow::n> R;
-	float flow_var = (flow_sigma_rw * flow_sigma_rw) / dt;
+	float flow_var = _flow_nd * _flow_nd / dt;
 	R(Y_flow::flowX, Y_flow::flowX) = flow_var;
 	R(Y_flow::flowY, Y_flow::flowY) = flow_var;
 

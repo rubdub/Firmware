@@ -62,9 +62,7 @@ void IEKF::correctMag(const sensor_combined_s *msg)
 
 	// define R
 	SquareMatrix<float, Y_mag::n> R;
-	float mag_ND = 0;
-	_nh.param("IEKF_MAG_ND", mag_ND, 0.0f);
-	R(Y_mag::hdg, Y_mag::hdg) = mag_ND * mag_ND / dt;
+	R(Y_mag::hdg, Y_mag::hdg) = _mag_nd * _mag_nd / dt;
 
 	// define H
 	Matrix<float, Y_mag::n, Xe::n> H;

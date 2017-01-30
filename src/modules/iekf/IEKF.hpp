@@ -49,7 +49,8 @@
 #include <uORB/topics/vision_position_estimate.h>
 #include <uORB/topics/att_pos_mocap.h>
 #include <uORB/topics/vehicle_land_detected.h>
-#include <uORB/topics/ekf2_innovations.h>
+//#include <uORB/topics/ekf2_innovations.h>
+#include <uORB/topics/parameter_update.h>
 
 // publications
 #include <uORB/topics/vehicle_attitude.h>
@@ -75,11 +76,26 @@ class IEKF
 {
 public:
 	IEKF();
-	Vector<float, X::n> dynamics(float t, const Vector<float, X::n> &x,
-				     const Vector<float, U::n> &u);
-	bool ok() { return _nh.ok(); }
+
+	// methods
+	//
+	Vector<float, X::n> dynamics(
+		float t, const Vector<float, X::n> &x,
+		const Vector<float, U::n> &u) const;
 	void callbackImu(const sensor_combined_s *msg);
+	void updateParams();
+	void callbackParamUpdate(const parameter_update_s *msg);
 	void initializeAttitude(const sensor_combined_s *msg);
+	void predictState(const sensor_combined_s *msg);
+	void predictCovariance(const sensor_combined_s *msg);
+	Vector<float, X::n> computeErrorCorrection(const Vector<float, Xe::n> &d_xe) const;
+	void correctionLogic(Vector<float, X::n> &dx) const;
+	void boundP();
+	void boundX();
+	void publish();
+	void normalizeQuaternion();
+
+	// sensor corrections/ callbacks
 	void correctAccel(const sensor_combined_s *msg);
 	void correctMag(const sensor_combined_s *msg);
 	void correctBaro(const sensor_combined_s *msg);
@@ -91,11 +107,9 @@ public:
 	void correctMocap(const att_pos_mocap_s *msg);
 	void callbackLand(const vehicle_land_detected_s *msg);
 	void correctLand(uint64_t timestamp);
-	void predictState(const sensor_combined_s *msg);
-	void predictCovariance(const sensor_combined_s *msg);
-	Vector<float, X::n> computeErrorCorrection(const Vector<float, Xe::n> &d_xe) const;
-	void correctionLogic(Vector<float, X::n> &dx) const;
-	void boundP();
+
+	// getters/ setters
+	bool ok() { return _nh.ok(); }
 	void setP(const SquareMatrix<float, Xe::n> &P)
 	{
 		_P = P;
@@ -106,7 +120,6 @@ public:
 		_P += dP;
 		boundP();
 	}
-	void boundX();
 	void setX(const Vector<float, X::n> &x)
 	{
 		_x = x;
@@ -118,7 +131,6 @@ public:
 		_x += dx;
 		boundX();
 	}
-	void publish();
 	inline bool getLanded() const
 	{
 		return _landed;
@@ -205,17 +217,6 @@ public:
 		Vector3f a_bias_b(_x(X::accel_bias_bX), _x(X::accel_bias_bY), _x(X::accel_bias_bZ));
 		return a_b - a_bias_b;
 	}
-
-	void normalizeQuaternion()
-	{
-		Quatf q = getQuaternionNB();
-		q.normalize();
-		_x(X::q_nb_0) = q(0);
-		_x(X::q_nb_1) = q(1);
-		_x(X::q_nb_2) = q(2);
-		_x(X::q_nb_3) = q(3);
-	}
-
 private:
 	ros::NodeHandle _nh;
 
@@ -241,6 +242,7 @@ private:
 	ros::Subscriber _subVision;
 	ros::Subscriber _subMocap;
 	ros::Subscriber _subLand;
+	ros::Subscriber _subParamUpdate;
 
 	// publishers
 	ros::Publisher _pubAttitude;
@@ -248,7 +250,6 @@ private:
 	ros::Publisher _pubGlobalPosition;
 	ros::Publisher _pubControlState;
 	ros::Publisher _pubEstimatorStatus;
-	ros::Publisher _pubInnov;
 
 	ros::Publisher _pubEstimatorState;
 	ros::Publisher _pubEstimatorStateStd;
@@ -284,4 +285,29 @@ private:
 	SquareMatrix<float, Xe::n> _dP; 	// change in covariance matrix used for checking
 	Vector<float, Innov::n>  _innov;
 	Vector<float, Innov::n>  _innovStd;
+
+	// params
+	float _gyro_nd;
+	float _gyro_rw_nd;
+	float _gyro_rw_ct;
+	float _accel_nd;
+	float _accel_rw_nd;
+	float _accel_rw_ct;
+	float _baro_nd;
+	float _baro_rw_nd;
+	float _baro_rw_ct;
+	float _mag_nd;
+	float _mag_rw_nd;
+	float _mag_rw_ct;
+	float _mag_decl_deg;
+	float _gps_xy_nd;
+	float _gps_z_nd;
+	float _gps_vxy_nd;
+	float _gps_vz_nd;
+	float _flow_nd;
+	float _pn_xy_nd;
+	float _pn_vxy_nd;
+	float _pn_z_nd;
+	float _pn_vz_nd;
+	float _pn_rot_nd;
 };

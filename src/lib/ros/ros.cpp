@@ -25,8 +25,8 @@
 namespace ros
 {
 
-HashMap<const char *, const struct orb_metadata *, 128> _topicDict;
-HashMap<const char *, param_t, 128> _paramDict;
+HashMap<const char *, const struct orb_metadata *, _tableSize> _topicDict;
+HashMap<const char *, param_t, _tableSize> _paramDict;
 
 Time::Time() : _nsec(0)
 {
@@ -113,6 +113,7 @@ Node::Node() :
 	_topicDict.put("estimator_state_std", ORB_ID(estimator_state_std));
 	_topicDict.put("estimator_innov", ORB_ID(estimator_innov));
 	_topicDict.put("estimator_innov_std", ORB_ID(estimator_innov_std));
+	_topicDict.put("parameter_update", ORB_ID(parameter_update));
 }
 
 Node::~Node()

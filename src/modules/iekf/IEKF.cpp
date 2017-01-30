@@ -40,33 +40,34 @@ float betaMaxDefault = 1e21;
 IEKF::IEKF() :
 	_nh(), // node handlke
 	// sensors
-	_sensorAccel("accel", betaMaxDefault, condMaxDefault, 50),
-	_sensorMag("mag", betaMaxDefault, condMaxDefault, 50),
-	_sensorBaro("baro", betaMaxDefault, condMaxDefault, 50),
-	_sensorGps("gps", betaMaxDefault, condMaxDefault, 10),
+	_sensorAccel("accel", betaMaxDefault, condMaxDefault, 20),
+	_sensorMag("mag", betaMaxDefault, condMaxDefault, 20),
+	_sensorBaro("baro", betaMaxDefault, condMaxDefault, 20),
+	// turning these off for now
+	_sensorGps("gps", betaMaxDefault, condMaxDefault, 0),
 	_sensorAirspeed("airspeed", betaMaxDefault, condMaxDefault, 0),
-	_sensorFlow("flow", betaMaxDefault, condMaxDefault, 10),
+	_sensorFlow("flow", betaMaxDefault, condMaxDefault, 0),
 	_sensorSonar("sonar", betaMaxDefault, condMaxDefault, 10),
-	_sensorLidar("lidar", betaMaxDefault, condMaxDefault, 10),
-	_sensorVision("vision", betaMaxDefault, condMaxDefault, 10),
-	_sensorMocap("mocap", betaMaxDefault, condMaxDefault, 10),
+	_sensorLidar("lidar", betaMaxDefault, condMaxDefault, 0),
+	_sensorVision("vision", betaMaxDefault, condMaxDefault, 0),
+	_sensorMocap("mocap", betaMaxDefault, condMaxDefault, 0),
 	_sensorLand("land_detected", betaMaxDefault, condMaxDefault, 0),
 	// subscriptions
-	_subImu(_nh.subscribe("sensor_combined", 0, &IEKF::callbackImu, this, 1)),
-	_subGps(_nh.subscribe("vehicle_gps_position", 0, &IEKF::correctGps, this, 100)),
-	_subAirspeed(_nh.subscribe("airspeed", 0, &IEKF::correctAirspeed, this, 100)),
-	_subFlow(_nh.subscribe("optical_flow", 0, &IEKF::correctFlow, this, 100)),
-	_subDistance(_nh.subscribe("distance_sensor", 0, &IEKF::correctDistance, this, 100)),
-	_subVision(_nh.subscribe("vision_position_estimate", 0, &IEKF::correctVision, this, 100)),
-	_subMocap(_nh.subscribe("att_pos_mocap", 0, &IEKF::correctMocap, this, 100)),
-	_subLand(_nh.subscribe("vehicle_land_detected", 0, &IEKF::callbackLand, this, 100)),
+	_subImu(_nh.subscribe("sensor_combined", 0, &IEKF::callbackImu, this, 1000 / 250)),
+	_subGps(_nh.subscribe("vehicle_gps_position", 0, &IEKF::correctGps, this, 1000 / 10)),
+	_subAirspeed(_nh.subscribe("airspeed", 0, &IEKF::correctAirspeed, this, 1000 / 10)),
+	_subFlow(_nh.subscribe("optical_flow", 0, &IEKF::correctFlow, this, 1000 / 10)),
+	_subDistance(_nh.subscribe("distance_sensor", 0, &IEKF::correctDistance, this, 1000 / 10)),
+	_subVision(_nh.subscribe("vision_position_estimate", 0, &IEKF::correctVision, this, 1000 / 10)),
+	_subMocap(_nh.subscribe("att_pos_mocap", 0, &IEKF::correctMocap, this, 1000 / 10)),
+	_subLand(_nh.subscribe("vehicle_land_detected", 0, &IEKF::callbackLand, this, 1000 / 10)),
+	_subParamUpdate(_nh.subscribe("parameter_update", 0, &IEKF::callbackParamUpdate, this, 1000 / 10)),
 	// publications
 	_pubAttitude(_nh.advertise<vehicle_attitude_s>("vehicle_attitude", 0)),
 	_pubLocalPosition(_nh.advertise<vehicle_local_position_s>("vehicle_local_position", 0)),
 	_pubGlobalPosition(_nh.advertise<vehicle_global_position_s>("vehicle_global_position", 0)),
 	_pubControlState(_nh.advertise<control_state_s>("control_state", 0)),
 	_pubEstimatorStatus(_nh.advertise<estimator_status_s>("estimator_status", 0)),
-	_pubInnov(_nh.advertise<ekf2_innovations_s>("ekf2_innovations", 0)),
 	_pubEstimatorState(_nh.advertise<estimator_state_s>("estimator_state", 0)),
 	_pubEstimatorStateStd(_nh.advertise<estimator_state_std_s>("estimator_state_std", 0)),
 	_pubEstimatorInnov(_nh.advertise<estimator_innov_s>("estimator_innov", 0)),
@@ -96,7 +97,31 @@ IEKF::IEKF() :
 	_gyroSaturated(false),
 	_A(), _Q(), _dxe(), _dP(),
 	_innov(),
-	_innovStd()
+	_innovStd(),
+	// params
+	_gyro_nd(0),
+	_gyro_rw_nd(0),
+	_gyro_rw_ct(1000),
+	_accel_nd(0),
+	_accel_rw_nd(0),
+	_accel_rw_ct(1000),
+	_baro_nd(0),
+	_baro_rw_nd(0),
+	_baro_rw_ct(1000),
+	_mag_nd(0),
+	_mag_rw_nd(0),
+	_mag_rw_ct(1000),
+	_mag_decl_deg(0),
+	_gps_xy_nd(0),
+	_gps_z_nd(0),
+	_gps_vxy_nd(0),
+	_gps_vz_nd(0),
+	_flow_nd(0),
+	_pn_xy_nd(0),
+	_pn_vxy_nd(0),
+	_pn_z_nd(0),
+	_pn_vz_nd(0),
+	_pn_rot_nd(0)
 {
 	// for quaterinons we bound at 2
 	// so it has a chance to
@@ -153,32 +178,32 @@ IEKF::IEKF() :
 	setX(_x0);
 
 	// initialize covariance
-	_P0Diag(Xe::rot_N) = 2;
-	_P0Diag(Xe::rot_E) = 2;
-	_P0Diag(Xe::rot_D) = 2;
-	_P0Diag(Xe::vel_N) = 2;
-	_P0Diag(Xe::vel_E) = 2;
-	_P0Diag(Xe::vel_D) = 2;
+	_P0Diag(Xe::rot_N) = 0;
+	_P0Diag(Xe::rot_E) = 0;
+	_P0Diag(Xe::rot_D) = 0;
+	_P0Diag(Xe::vel_N) = 0;
+	_P0Diag(Xe::vel_E) = 0;
+	_P0Diag(Xe::vel_D) = 0;
 	_P0Diag(Xe::gyro_bias_N) = 0;
 	_P0Diag(Xe::gyro_bias_E) = 0;
 	_P0Diag(Xe::gyro_bias_D) = 0;
 	_P0Diag(Xe::accel_bias_N) = 0;
 	_P0Diag(Xe::accel_bias_E) = 0;
 	_P0Diag(Xe::accel_bias_D) = 0;
-	_P0Diag(Xe::pos_N) = 2;
-	_P0Diag(Xe::pos_E) = 2;
-	_P0Diag(Xe::asl) = 2;
-	_P0Diag(Xe::terrain_asl) = 2;
-	_P0Diag(Xe::baro_bias) = 2;
+	_P0Diag(Xe::pos_N) = 0;
+	_P0Diag(Xe::pos_E) = 0;
+	_P0Diag(Xe::asl) = 0;
+	_P0Diag(Xe::terrain_asl) = 0;
+	_P0Diag(Xe::baro_bias) = 0;
 	//_P0Diag(Xe::wind_N) = 0;
 	//_P0Diag(Xe::wind_E) = 0;
 	//_P0Diag(Xe::wind_D) = 0;
 	setP(diag(_P0Diag));
 
-	_nh.param("IEKF_MAG_DECL", _magDeclDeg, 0.0f);
+	updateParams();
 }
 
-Vector<float, X::n> IEKF::dynamics(float t, const Vector<float, X::n> &x, const Vector<float, U::n> &u)
+Vector<float, X::n> IEKF::dynamics(float t, const Vector<float, X::n> &x, const Vector<float, U::n> &u) const
 {
 	Vector<float, X::n> dx;
 	Quatf q_nb(x(X::q_nb_0), x(X::q_nb_1), x(X::q_nb_2), x(X::q_nb_3));
@@ -214,20 +239,13 @@ Vector<float, X::n> IEKF::dynamics(float t, const Vector<float, X::n> &x, const 
 	//double(_x(X::wind_D)));
 
 	// params
-	float gyro_correlation_time = 0;
-	_nh.param("IEKF_GYRO_RW_CT", gyro_correlation_time, 1e3f);
-	float accel_correlation_time = 0;
-	_nh.param("IEKF_ACCEL_RW_CT", accel_correlation_time, 1e3f);
-	float baro_correlation_time = 0;
-	_nh.param("IEKF_BARO_RW_CT", baro_correlation_time, 1e3f);
+	dx(X::gyro_bias_bX) = -_x(X::gyro_bias_bX) / _gyro_rw_ct;
+	dx(X::gyro_bias_bY) = -_x(X::gyro_bias_bY) / _gyro_rw_ct;
+	dx(X::gyro_bias_bZ) = -_x(X::gyro_bias_bZ) / _gyro_rw_ct;
 
-	dx(X::gyro_bias_bX) = -_x(X::gyro_bias_bX) / gyro_correlation_time;
-	dx(X::gyro_bias_bY) = -_x(X::gyro_bias_bY) / gyro_correlation_time;
-	dx(X::gyro_bias_bZ) = -_x(X::gyro_bias_bZ) / gyro_correlation_time;
-
-	dx(X::accel_bias_bX) = -_x(X::accel_bias_bX) / accel_correlation_time;
-	dx(X::accel_bias_bY) = -_x(X::accel_bias_bY) / accel_correlation_time;
-	dx(X::accel_bias_bZ) = -_x(X::accel_bias_bZ) / accel_correlation_time;
+	dx(X::accel_bias_bX) = -_x(X::accel_bias_bX) / _accel_rw_ct;
+	dx(X::accel_bias_bY) = -_x(X::accel_bias_bY) / _accel_rw_ct;
+	dx(X::accel_bias_bZ) = -_x(X::accel_bias_bZ) / _accel_rw_ct;
 
 	dx(X::vel_N) = as_n(0);
 	dx(X::vel_E) = as_n(1);
@@ -240,10 +258,10 @@ Vector<float, X::n> IEKF::dynamics(float t, const Vector<float, X::n> &x, const 
 	// want terrain dynamics to be static, so when out of range it keeps
 	// last estimate and doesn't decay
 	dx(X::terrain_asl) = 0;
-	dx(X::baro_bias) = -x(X::baro_bias) / baro_correlation_time;
-	//dx(X::wind_N) = -_x(X::wind_N) / wind_correlation_time;
-	//dx(X::wind_E) = -_x(X::wind_E) / wind_correlation_time;
-	//dx(X::wind_D) = -_x(X::wind_D) / wind_correlation_time;
+	dx(X::baro_bias) = -x(X::baro_bias) / _baro_rw_ct;
+	//dx(X::wind_N) = -_x(X::wind_N) / _wind_rw_ct;
+	//dx(X::wind_E) = -_x(X::wind_E) / _wind_rw_ct;
+	//dx(X::wind_D) = -_x(X::wind_D) / _wind_rw_ct;
 	return dx;
 }
 
@@ -321,6 +339,41 @@ void IEKF::callbackImu(const sensor_combined_s *msg)
 	}
 }
 
+void IEKF::updateParams()
+{
+	_nh.getParam("IEKF_GYRO_ND", _gyro_nd);
+	_nh.getParam("IEKF_GYRO_RW_ND", _gyro_rw_nd);
+	_nh.getParam("IEKF_GYRO_RW_CT", _gyro_rw_ct);
+	_nh.getParam("IEKF_ACCEL_ND", _accel_nd);
+	_nh.getParam("IEKF_ACCEL_RW_ND", _accel_rw_nd);
+	_nh.getParam("IEKF_ACCEL_RW_CT", _accel_rw_ct);
+	_nh.getParam("IEKF_BARO_ND", _baro_nd);
+	_nh.getParam("IEKF_BARO_RW_ND", _baro_rw_nd);
+	_nh.getParam("IEKF_BARO_RW_CT", _baro_rw_ct);
+	_nh.getParam("IEKF_MAG_ND", _mag_nd);
+	_nh.getParam("IEKF_MAG_RW_ND", _mag_rw_nd);
+	_nh.getParam("IEKF_MAG_RW_CT", _mag_rw_ct);
+	_nh.getParam("IEKF_MAG_ND", _mag_nd);
+	_nh.getParam("IEKF_MAG_RW_ND", _mag_rw_nd);
+	_nh.getParam("IEKF_MAG_RW_CT", _mag_rw_ct);
+	_nh.getParam("IEKF_MAG_DECL", _mag_decl_deg);
+	_nh.getParam("IEKF_GPS_XY_ND", _gps_xy_nd);
+	_nh.getParam("IEKF_GPS_Z_ND", _gps_z_nd);
+	_nh.getParam("IEKF_GPS_VXY_ND", _gps_vxy_nd);
+	_nh.getParam("IEKF_GPS_VZ_ND", _gps_vz_nd);
+	_nh.getParam("IEKF_FLOW_ND", _flow_nd);
+	_nh.getParam("IEKF_PN_XY_ND", _pn_xy_nd);
+	_nh.getParam("IEKF_PN_VXY_ND", _pn_vxy_nd);
+	_nh.getParam("IEKF_PN_Z_ND", _pn_z_nd);
+	_nh.getParam("IEKF_PN_VZ_ND", _pn_vz_nd);
+	_nh.getParam("IEKF_PN_ROT_ND", _pn_rot_nd);
+}
+
+void IEKF::callbackParamUpdate(const parameter_update_s *msg)
+{
+	updateParams();
+}
+
 void IEKF::initializeAttitude(const sensor_combined_s *msg)
 {
 	// return if no new mag data
@@ -351,8 +404,7 @@ void IEKF::initializeAttitude(const sensor_combined_s *msg)
 	C_nb.setRow(2, bz);
 
 	// account for magnetic declination
-	_nh.param("IEKF_MAG_DECL", _magDeclDeg, 0.0f);
-	Quatf q_nb = Dcmf(Dcmf(AxisAnglef(Vector3f(0, 0, 1), deg2radf * _magDeclDeg)) * C_nb);
+	Quatf q_nb = Dcmf(Dcmf(AxisAnglef(Vector3f(0, 0, 1), deg2radf * _mag_decl_deg)) * C_nb);
 
 	_x(X::q_nb_0) = q_nb(0);
 	_x(X::q_nb_1) = q_nb(1);
@@ -484,14 +536,6 @@ void IEKF::predictCovariance(const sensor_combined_s *msg)
 			}
 		}
 
-		// params
-		float gyro_correlation_time = 0;
-		_nh.param("IEKF_GYRO_RW_CT", gyro_correlation_time, 1e3f);
-		float accel_correlation_time = 0;
-		_nh.param("IEKF_ACCEL_RW_CT", accel_correlation_time, 1e3f);
-		float baro_correlation_time = 0;
-		_nh.param("IEKF_BARO_RW_CT", baro_correlation_time, 1e3f);
-
 		// derivative of position is velocity
 		_A(Xe::pos_N, Xe::vel_N) = 1;
 		_A(Xe::pos_E, Xe::vel_E) = 1;
@@ -500,65 +544,34 @@ void IEKF::predictCovariance(const sensor_combined_s *msg)
 		// derivative of terrain alt is zero
 
 		// derivative of baro bias
-		_A(Xe::baro_bias, Xe::baro_bias) = -1.0f / baro_correlation_time;
+		_A(Xe::baro_bias, Xe::baro_bias) = -1.0f / _baro_rw_ct;
 
 		// derivative of gyro bias
-		_A(Xe::gyro_bias_N, Xe::gyro_bias_N) = -1 / gyro_correlation_time;
-		_A(Xe::gyro_bias_E, Xe::gyro_bias_E) = -1 / gyro_correlation_time;
-		_A(Xe::gyro_bias_D, Xe::gyro_bias_D) = -1 / gyro_correlation_time;
+		_A(Xe::gyro_bias_N, Xe::gyro_bias_N) = -1 / _gyro_rw_ct;
+		_A(Xe::gyro_bias_E, Xe::gyro_bias_E) = -1 / _gyro_rw_ct;
+		_A(Xe::gyro_bias_D, Xe::gyro_bias_D) = -1 / _gyro_rw_ct;
 
 		// derivative of accel bias
-		_A(Xe::accel_bias_N, Xe::accel_bias_N) = -1 / accel_correlation_time;
-		_A(Xe::accel_bias_E, Xe::accel_bias_E) = -1 / accel_correlation_time;
-		_A(Xe::accel_bias_D, Xe::accel_bias_D) = -1 / accel_correlation_time;
+		_A(Xe::accel_bias_N, Xe::accel_bias_N) = -1 / _accel_rw_ct;
+		_A(Xe::accel_bias_E, Xe::accel_bias_E) = -1 / _accel_rw_ct;
+		_A(Xe::accel_bias_D, Xe::accel_bias_D) = -1 / _accel_rw_ct;
 
 	}
 
 	// define process noise matrix
 	{
-		// get accel noise params
-		float accel_ND = 0;
-		_nh.param("IEKF_ACCEL_ND", accel_ND, 0.0f);
-		float accel_RW_ND = 0;
-		_nh.param("IEKF_ACCEL_RW_ND", accel_RW_ND, 0.0f);
-		float accel_var_rrw = accel_RW_ND * accel_RW_ND;
-
-		// get gyro noise params
-		float gyro_ND = 0;
-		_nh.param("IEKF_GYRO_ND", gyro_ND, 0.0f);
-		float gyro_RW_ND = 0;
-		_nh.param("IEKF_GYRO_RW_ND", gyro_RW_ND, 0.0f);
-		float gyro_var_rrw = gyro_RW_ND * gyro_RW_ND;
-
-		// get baro noise params
-		float baro_ND = 0;
-		_nh.param("IEKF_BARO_ND", baro_ND, 0.0f);
-		float baro_RW_ND = 0;
-		_nh.param("IEKF_BARO_RW_ND", baro_RW_ND, 0.0f);
-		float baro_var_rrw = baro_RW_ND * baro_RW_ND;
-
-		// get process noise params
-		float pn_XY_ND = 0;
-		_nh.param("IEKF_PN_XY_ND", pn_XY_ND, 0.0f);
-		float pos_var_xy = pn_XY_ND * pn_XY_ND;
-		float pn_Z_ND = 0;
-		_nh.param("IEKF_PN_Z_ND", pn_Z_ND, 0.0f);
-		float pos_var_z = pn_Z_ND * pn_Z_ND;
-		float pn_VXY_ND = 0;
-		_nh.param("IEKF_PN_VXY_ND", pn_VXY_ND, 0.0f);
-		float pn_VZ_ND = 0;
-		_nh.param("IEKF_PN_VZ_ND", pn_VZ_ND, 0.0f);
-		float pn_ROT_ND = 0;
-		_nh.param("IEKF_PN_ROT_ND", pn_ROT_ND, 0.0f);
-
-		// TODO: check if we need param caching
-
-		float rot_var = gyro_ND * gyro_ND +  \
-				pn_ROT_ND * pn_ROT_ND;
-		float vel_var_xy = accel_ND * accel_ND + \
-				   pn_VXY_ND * pn_VXY_ND;
-		float vel_var_z = accel_ND * accel_ND + \
-				  pn_VZ_ND * pn_VZ_ND;
+		// variances
+		float accel_var_rw = _accel_rw_nd * _accel_rw_nd;
+		float gyro_var_rw = _gyro_rw_nd * _gyro_rw_nd;
+		float baro_var_rw = _baro_rw_nd * _baro_rw_nd;
+		float pos_var_xy = _pn_xy_nd * _pn_xy_nd;
+		float pos_var_z = _pn_z_nd * _pn_z_nd;
+		float rot_var = _gyro_nd * _gyro_nd +  \
+				_pn_rot_nd * _pn_rot_nd;
+		float vel_var_xy = _accel_nd * _accel_nd + \
+				   _pn_vxy_nd * _pn_vxy_nd;
+		float vel_var_z = _accel_nd * _accel_nd + \
+				  _pn_vz_nd * _pn_vz_nd;
 		float terrain_var_asl = terrain_sigma_asl * terrain_sigma_asl;
 
 		// account for gyro saturation
@@ -579,17 +592,17 @@ void IEKF::predictCovariance(const sensor_combined_s *msg)
 		_Q(Xe::vel_N, Xe::vel_N) = vel_var_xy;
 		_Q(Xe::vel_E, Xe::vel_E) = vel_var_xy;
 		_Q(Xe::vel_D, Xe::vel_D) = vel_var_z;
-		_Q(Xe::gyro_bias_N, Xe::gyro_bias_N) = gyro_var_rrw;
-		_Q(Xe::gyro_bias_E, Xe::gyro_bias_E) = gyro_var_rrw;
-		_Q(Xe::gyro_bias_D, Xe::gyro_bias_D) = gyro_var_rrw;
-		_Q(Xe::accel_bias_N, Xe::accel_bias_N) = accel_var_rrw;
-		_Q(Xe::accel_bias_E, Xe::accel_bias_E) = accel_var_rrw;
-		_Q(Xe::accel_bias_D, Xe::accel_bias_D) = accel_var_rrw;
+		_Q(Xe::gyro_bias_N, Xe::gyro_bias_N) = gyro_var_rw;
+		_Q(Xe::gyro_bias_E, Xe::gyro_bias_E) = gyro_var_rw;
+		_Q(Xe::gyro_bias_D, Xe::gyro_bias_D) = gyro_var_rw;
+		_Q(Xe::accel_bias_N, Xe::accel_bias_N) = accel_var_rw;
+		_Q(Xe::accel_bias_E, Xe::accel_bias_E) = accel_var_rw;
+		_Q(Xe::accel_bias_D, Xe::accel_bias_D) = accel_var_rw;
 		_Q(Xe::pos_N, Xe::pos_N) = pos_var_xy;
 		_Q(Xe::pos_E, Xe::pos_E) = pos_var_xy;
 		_Q(Xe::asl, Xe::asl) = pos_var_z;
 		_Q(Xe::terrain_asl, Xe::terrain_asl) = terrain_var_asl;
-		_Q(Xe::baro_bias, Xe::baro_bias) = baro_var_rrw;
+		_Q(Xe::baro_bias, Xe::baro_bias) = baro_var_rw;
 		//_Q(Xe::wind_N, Xe::wind_N) = 1e-2f;
 		//_Q(Xe::wind_E, Xe::wind_E) = 1e-2f;
 		//_Q(Xe::wind_D, Xe::wind_D) = 1e-2f;
@@ -1081,4 +1094,14 @@ void IEKF::publish()
 		_pubEstimatorStatus.publish(msg);
 	}
 
+}
+
+void IEKF::normalizeQuaternion()
+{
+	Quatf q = getQuaternionNB();
+	q.normalize();
+	_x(X::q_nb_0) = q(0);
+	_x(X::q_nb_1) = q(1);
+	_x(X::q_nb_2) = q(2);
+	_x(X::q_nb_3) = q(3);
 }

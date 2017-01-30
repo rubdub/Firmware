@@ -19,6 +19,6 @@ for lib in sorted(libs, key=lambda t: t[1], reverse=True):
     name = os.path.basename(path)
     size = lib[1]/1024.0/1024.0
     if int(size) > 0:
-        print('{:20s} : {:40s}\tsize:\t{:5.2f}\tMB'.format(parent_dir, name, size))
+        print('{:30s} : {:40s}\tsize:\t{:5.2f}\tMB'.format(parent_dir, name, size))
 
 

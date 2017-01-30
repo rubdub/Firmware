@@ -518,4 +518,3 @@ const float gyro_saturation_thresh = 720 * deg2radf; // rad/s
 const float accel_saturation_thresh = 3 * g; // m/s^2
 
 const float wind_correlation_time = 1000; // s
-const float flow_sigma_rw = 2.5e-2; // rad/s / sqrt(s)

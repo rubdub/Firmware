@@ -105,21 +105,11 @@ void IEKF::correctGps(const vehicle_gps_position_s *msg)
 	// define R
 	Matrix<float, Y_gps::n, Y_gps::n> R;
 
-	float gps_XY_ND = 0;
-	_nh.param("IEKF_GPS_XY_ND", gps_XY_ND, 0.0f);
-	float gps_xy_var = gps_XY_ND * gps_XY_ND / dt;
-
-	float gps_Z_ND = 0;
-	_nh.param("IEKF_GPS_Z_ND", gps_Z_ND, 0.0f);
-	float gps_z_var = gps_Z_ND * gps_Z_ND / dt;
-
-	float gps_VXY_ND = 0;
-	_nh.param("IEKF_GPS_VXY_ND", gps_VXY_ND, 0.0f);
-	float gps_vxy_var = gps_VXY_ND * gps_VXY_ND;
-
-	float gps_VZ_ND = 0;
-	_nh.param("IEKF_GPS_VZ_ND", gps_VZ_ND, 0.0f);
-	float gps_vz_var = gps_VZ_ND * gps_VZ_ND;
+	// variances
+	float gps_xy_var = _gps_xy_nd * _gps_xy_nd / dt;
+	float gps_z_var = _gps_z_nd * _gps_z_nd / dt;
+	float gps_vxy_var = _gps_vxy_nd * _gps_vxy_nd;
+	float gps_vz_var = _gps_vz_nd * _gps_vz_nd;
 
 	R(Y_gps::pos_N, Y_gps::pos_N) = gps_xy_var;
 	R(Y_gps::pos_E, Y_gps::pos_E) = gps_xy_var;

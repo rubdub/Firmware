@@ -95,7 +95,14 @@ void IEKF::correctLand(uint64_t timestamp)
 	_sensorLand.kalmanCorrectCond(_P, H, R, r, _dxe, _dP, S);
 
 	// store innovation
-	// XXX ekf2 doesn't have a place for this innovation
+	_innov(Innov::LAND_vel_N) = r(0);
+	_innov(Innov::LAND_vel_E) = r(1);
+	_innov(Innov::LAND_vel_D) = r(2);
+	_innov(Innov::LAND_agl) = r(3);
+	_innovStd(Innov::LAND_vel_N) = sqrtf(S(0, 0));
+	_innovStd(Innov::LAND_vel_E) = sqrtf(S(1, 1));
+	_innovStd(Innov::LAND_vel_D) = sqrtf(S(2, 2));
+	_innovStd(Innov::LAND_agl) = sqrtf(S(3, 3));
 
 	if (_sensorLand.shouldCorrect()) {
 		Vector<float, X::n> dx = computeErrorCorrection(_dxe);

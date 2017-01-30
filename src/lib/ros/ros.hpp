@@ -44,8 +44,9 @@ private:
 
 // node for this process declared in ros.cpp
 extern Node *_node;
-extern HashMap<const char *, const struct orb_metadata *, 128> _topicDict;
-extern HashMap<const char *, param_t, 128> _paramDict;
+static const size_t _tableSize = 128;
+extern HashMap<const char *, const struct orb_metadata *, _tableSize> _topicDict;
+extern HashMap<const char *, param_t, _tableSize> _paramDict;
 
 /***
  * Check if any callbacks are ready to fire and call them

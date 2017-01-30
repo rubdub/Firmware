@@ -70,9 +70,7 @@ void IEKF::correctBaro(const sensor_combined_s *msg)
 
 	// define R
 	SquareMatrix<float, Y_baro::n> R;
-	float baro_ND = 0;
-	_nh.param("IEKF_BARO_ND", baro_ND, 0.0f);
-	R(Y_baro::asl, Y_baro::asl) = baro_ND * baro_ND / dt;
+	R(Y_baro::asl, Y_baro::asl) = _baro_nd * _baro_nd / dt;
 
 	// define H
 	Matrix<float, Y_baro::n, Xe::n> H;
