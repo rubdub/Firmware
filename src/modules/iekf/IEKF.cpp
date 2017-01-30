@@ -88,7 +88,6 @@ IEKF::IEKF() :
 	_landed(true),
 	_freefall(false),
 	_gpsUSec(0),
-	_magDeclDeg(0),
 	_attitudeInitialized(false),
 	_stateTimestamp(),
 	_covarianceTimestamp(),
@@ -117,11 +116,17 @@ IEKF::IEKF() :
 	_gps_vxy_nd(0),
 	_gps_vz_nd(0),
 	_flow_nd(0),
+	_lidar_nd(0),
+	_sonar_nd(0),
+	_land_vxy_nd(0),
+	_land_vz_nd(0),
+	_land_agl_nd(0),
 	_pn_xy_nd(0),
 	_pn_vxy_nd(0),
 	_pn_z_nd(0),
 	_pn_vz_nd(0),
-	_pn_rot_nd(0)
+	_pn_rot_nd(0),
+	_pn_t_asl_nd(0)
 {
 	// for quaterinons we bound at 2
 	// so it has a chance to
@@ -344,29 +349,41 @@ void IEKF::updateParams()
 	_nh.getParam("IEKF_GYRO_ND", _gyro_nd);
 	_nh.getParam("IEKF_GYRO_RW_ND", _gyro_rw_nd);
 	_nh.getParam("IEKF_GYRO_RW_CT", _gyro_rw_ct);
+
 	_nh.getParam("IEKF_ACCEL_ND", _accel_nd);
 	_nh.getParam("IEKF_ACCEL_RW_ND", _accel_rw_nd);
 	_nh.getParam("IEKF_ACCEL_RW_CT", _accel_rw_ct);
+
 	_nh.getParam("IEKF_BARO_ND", _baro_nd);
 	_nh.getParam("IEKF_BARO_RW_ND", _baro_rw_nd);
 	_nh.getParam("IEKF_BARO_RW_CT", _baro_rw_ct);
-	_nh.getParam("IEKF_MAG_ND", _mag_nd);
-	_nh.getParam("IEKF_MAG_RW_ND", _mag_rw_nd);
-	_nh.getParam("IEKF_MAG_RW_CT", _mag_rw_ct);
+
 	_nh.getParam("IEKF_MAG_ND", _mag_nd);
 	_nh.getParam("IEKF_MAG_RW_ND", _mag_rw_nd);
 	_nh.getParam("IEKF_MAG_RW_CT", _mag_rw_ct);
 	_nh.getParam("IEKF_MAG_DECL", _mag_decl_deg);
+
 	_nh.getParam("IEKF_GPS_XY_ND", _gps_xy_nd);
 	_nh.getParam("IEKF_GPS_Z_ND", _gps_z_nd);
 	_nh.getParam("IEKF_GPS_VXY_ND", _gps_vxy_nd);
 	_nh.getParam("IEKF_GPS_VZ_ND", _gps_vz_nd);
+
 	_nh.getParam("IEKF_FLOW_ND", _flow_nd);
+
+	_nh.getParam("IEKF_LIDAR_ND", _lidar_nd);
+
+	_nh.getParam("IEKF_SONAR_ND", _sonar_nd);
+
+	_nh.getParam("IEKF_LAND_VXY_ND", _land_vxy_nd);
+	_nh.getParam("IEKF_LAND_VZ_ND", _land_vz_nd);
+	_nh.getParam("IEKF_LAND_AGL_ND", _land_agl_nd);
+
 	_nh.getParam("IEKF_PN_XY_ND", _pn_xy_nd);
 	_nh.getParam("IEKF_PN_VXY_ND", _pn_vxy_nd);
 	_nh.getParam("IEKF_PN_Z_ND", _pn_z_nd);
 	_nh.getParam("IEKF_PN_VZ_ND", _pn_vz_nd);
 	_nh.getParam("IEKF_PN_ROT_ND", _pn_rot_nd);
+	_nh.getParam("IEKF_PN_T_ASL_ND", _pn_t_asl_nd);
 }
 
 void IEKF::callbackParamUpdate(const parameter_update_s *msg)
@@ -544,7 +561,7 @@ void IEKF::predictCovariance(const sensor_combined_s *msg)
 		// derivative of terrain alt is zero
 
 		// derivative of baro bias
-		_A(Xe::baro_bias, Xe::baro_bias) = -1.0f / _baro_rw_ct;
+		_A(Xe::baro_bias, Xe::baro_bias) = -1 / _baro_rw_ct;
 
 		// derivative of gyro bias
 		_A(Xe::gyro_bias_N, Xe::gyro_bias_N) = -1 / _gyro_rw_ct;
@@ -572,7 +589,7 @@ void IEKF::predictCovariance(const sensor_combined_s *msg)
 				   _pn_vxy_nd * _pn_vxy_nd;
 		float vel_var_z = _accel_nd * _accel_nd + \
 				  _pn_vz_nd * _pn_vz_nd;
-		float terrain_var_asl = terrain_sigma_asl * terrain_sigma_asl;
+		float terrain_var_asl = _pn_t_asl_nd * _pn_t_asl_nd;
 
 		// account for gyro saturation
 		if (getGyroSaturated()) {
@@ -708,32 +725,32 @@ Vector<float, X::n> IEKF::computeErrorCorrection(const Vector<float, Xe::n> &d_x
 void IEKF::correctionLogic(Vector<float, X::n> &dx) const
 {
 
-	//if (!getLanded()) {
-	//dx(X::pos_N) = 0;
-	//dx(X::pos_E) = 0;
-	//}
+	if (getLanded()) {
+		dx(X::pos_N) = 0;
+		dx(X::pos_E) = 0;
+	}
 
-	//if (!getPositionXYValid()) {
-	//dx(X::pos_N) = 0;
-	//dx(X::pos_E) = 0;
-	//}
+	if (!getPositionXYValid()) {
+		dx(X::pos_N) = 0;
+		dx(X::pos_E) = 0;
+	}
 
-	//if (!getAltitudeValid()) {
-	//dx(X::asl) = 0;
-	//}
+	if (!getAltitudeValid()) {
+		dx(X::asl) = 0;
+	}
 
-	//if (!getVelocityXYValid()) {
-	//dx(X::vel_N) = 0;
-	//dx(X::vel_E) = 0;
-	//}
+	if (!getVelocityXYValid()) {
+		dx(X::vel_N) = 0;
+		dx(X::vel_E) = 0;
+	}
 
-	//if (!getVelocityZValid()) {
-	//dx(X::vel_D) = 0;
-	//}
+	if (!getVelocityZValid()) {
+		dx(X::vel_D) = 0;
+	}
 
-	//if (!getTerrainValid()) {
-	//dx(X::terrain_asl) = 0;
-	//}
+	if (!getTerrainValid()) {
+		dx(X::terrain_asl) = 0;
+	}
 }
 
 void IEKF::boundP()

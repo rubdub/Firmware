@@ -225,6 +225,74 @@ PARAM_DEFINE_FLOAT(IEKF_GPS_VZ_ND, 4e-1f);
 PARAM_DEFINE_FLOAT(IEKF_FLOW_ND, 1e-2f);
 
 /*================================================================*/
+/* Lidar */
+/*================================================================*/
+
+/**
+ * Lidar noise density
+ *
+ * @group IEKF
+ * @unit (m) / sqrt(Hz)
+ * @min 0
+ * @max 1e0
+ * @decimal 5
+ */
+PARAM_DEFINE_FLOAT(IEKF_LIDAR_ND, 1e-3f);
+
+
+/*================================================================*/
+/* Sonar */
+/*================================================================*/
+
+/**
+ * Sonar noise density
+ *
+ * @group IEKF
+ * @unit (m) / sqrt(Hz)
+ * @min 0
+ * @max 1e0
+ * @decimal 5
+ */
+PARAM_DEFINE_FLOAT(IEKF_SONAR_ND, 1e-2f);
+
+/*================================================================*/
+/* Land */
+/*================================================================*/
+
+/**
+ * Land velocity xy noise density
+ *
+ * @group IEKF
+ * @unit (m/s) / sqrt(Hz)
+ * @min 0
+ * @max 1e0
+ * @decimal 5
+ */
+PARAM_DEFINE_FLOAT(IEKF_LAND_VXY_ND, 1e-4f);
+
+/**
+ * Land velocity z noise density
+ *
+ * @group IEKF
+ * @unit (m/s) / sqrt(Hz)
+ * @min 0
+ * @max 1e0
+ * @decimal 5
+ */
+PARAM_DEFINE_FLOAT(IEKF_LAND_VZ_ND, 1e-4f);
+
+/**
+ * Land agl noise density
+ *
+ * @group IEKF
+ * @unit (m) / sqrt(Hz)
+ * @min 0
+ * @max 1e0
+ * @decimal 5
+ */
+PARAM_DEFINE_FLOAT(IEKF_LAND_AGL_ND, 1e-4f);
+
+/*================================================================*/
 /* Process Noise */
 /*================================================================*/
 
@@ -282,3 +350,14 @@ PARAM_DEFINE_FLOAT(IEKF_PN_VZ_ND, 1e-1f);
  * @decimal 5
  */
 PARAM_DEFINE_FLOAT(IEKF_PN_ROT_ND, 1e-3f);
+
+/**
+ * Process noise terrain asl
+ *
+ * @group IEKF
+ * @unit (m/s) / sqrt(Hz)
+ * @min 0
+ * @max 1e0
+ * @decimal 5
+ */
+PARAM_DEFINE_FLOAT(IEKF_PN_T_ASL_ND, 1e-1f);

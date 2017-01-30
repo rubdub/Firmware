@@ -272,7 +272,6 @@ private:
 	bool _landed;					// are we landed?
 	bool _freefall;					// are we freefalling?
 	uint64_t _gpsUSec; 				// gps internal timestamp
-	float _magDeclDeg; 				// magnetic declination (change in magnetic heading angle), deg
 	bool _attitudeInitialized;		// attitude initializtion complete
 	uint64_t _stateTimestamp;		// state prediction timestamp
 	uint64_t _covarianceTimestamp;; // covariance prediction timestamp
@@ -305,9 +304,15 @@ private:
 	float _gps_vxy_nd;
 	float _gps_vz_nd;
 	float _flow_nd;
+	float _lidar_nd;
+	float _sonar_nd;
+	float _land_vxy_nd;
+	float _land_vz_nd;
+	float _land_agl_nd;
 	float _pn_xy_nd;
 	float _pn_vxy_nd;
 	float _pn_z_nd;
 	float _pn_vz_nd;
 	float _pn_rot_nd;
+	float _pn_t_asl_nd;
 };

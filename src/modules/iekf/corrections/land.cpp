@@ -73,9 +73,9 @@ void IEKF::correctLand(uint64_t timestamp)
 
 	// define R
 	SquareMatrix<float, Y_land::n> R;
-	float var_vxy = land_sigma_vxy * land_sigma_vxy / dt;
-	float var_vz = land_sigma_vz * land_sigma_vz / dt;
-	float var_agl = land_sigma_agl * land_sigma_agl / dt;
+	float var_vxy = _land_vxy_nd * _land_vxy_nd / dt;
+	float var_vz = _land_vz_nd * _land_vz_nd / dt;
+	float var_agl = _land_agl_nd * _land_agl_nd / dt;
 
 	R(Y_land::vel_N, Y_land::vel_N) = var_vxy;
 	R(Y_land::vel_E, Y_land::vel_E) = var_vxy;

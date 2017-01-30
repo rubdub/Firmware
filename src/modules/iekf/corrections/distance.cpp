@@ -42,12 +42,15 @@ void IEKF::correctDistance(const distance_sensor_s *msg)
 
 	// get correct sensor
 	Sensor *sensor = NULL;
+	float d_nd = 0;
 
 	if (msg->type == distance_sensor_s::MAV_DISTANCE_SENSOR_ULTRASOUND) {
 		sensor = &_sensorSonar;
+		d_nd = _sonar_nd;
 
 	} else if (msg->type == distance_sensor_s::MAV_DISTANCE_SENSOR_LASER) {
 		sensor = &_sensorLidar;
+		d_nd = _lidar_nd;
 
 	} else {
 		return;
@@ -111,7 +114,7 @@ void IEKF::correctDistance(const distance_sensor_s *msg)
 
 	// define R
 	SquareMatrix<float, Y_distance_down::n> R;
-	R(Y_distance_down::d, Y_distance_down::d) = 1e-4f / dt;
+	R(Y_distance_down::d, Y_distance_down::d) = d_nd * d_nd / dt;
 
 	// define H
 	// Note: this measurement is not invariant due to

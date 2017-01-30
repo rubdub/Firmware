@@ -55,7 +55,7 @@ void IEKF::correctMag(const sensor_combined_s *msg)
 	Vector3f y_n = q_nb.conjugate(y_b);
 	y_n(2) = 0;
 	Vector3f yh_n = Dcmf(Eulerf(
-				     0, 0, deg2radf * _magDeclDeg)).T() * Vector3f(1, 0, 0);
+				     0, 0, deg2radf * _mag_decl_deg)).T() * Vector3f(1, 0, 0);
 	Vector<float, 1> r;
 	r(0) = asinf(y_n.cross(yh_n)(2)) / y_n.norm() / yh_n.norm();
 	//ROS_INFO("mag r: %10.4f\n", double(r(0)));
