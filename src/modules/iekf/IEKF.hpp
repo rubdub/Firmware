@@ -31,6 +31,7 @@
  *
  ****************************************************************************/
 
+#include "controllib/blocks.hpp"
 #include "ros/ros.hpp"
 #include "matrix/math.hpp"
 #include <lib/geo/geo.h>
@@ -64,6 +65,7 @@
 #include <uORB/topics/estimator_innov_std.h>
 
 using namespace matrix;
+using namespace control;
 
 /**
  * Main class for invariant extended kalman filter
@@ -72,7 +74,7 @@ using namespace matrix;
  *
  * See: https://github.com/jgoppert/iekf_analysisa for derivation/ simulation
  */
-class IEKF
+class IEKF : public SuperBlock
 {
 public:
 	IEKF();
@@ -219,6 +221,11 @@ public:
 	}
 private:
 	ros::NodeHandle _nh;
+
+	// blocks
+	BlockLowPass _baroLP;
+	BlockLowPassVector<float, 3> _accelLP;
+	BlockLowPassVector<float, 3> _magLP;
 
 	// sensors
 	Sensor _sensorAccel;

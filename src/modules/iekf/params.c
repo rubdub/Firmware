@@ -76,6 +76,17 @@ PARAM_DEFINE_FLOAT(IEKF_ACCEL_RW_ND, 2e-3f);
  */
 PARAM_DEFINE_FLOAT(IEKF_ACCEL_RW_CT, 1e3);
 
+/**
+ * Accel low pass filter cut freq
+ *
+ * @group IEKF
+ * @unit Hz
+ * @min 1
+ * @max 250
+ * @decimal 0
+ */
+PARAM_DEFINE_FLOAT(IEKF_ACCEL_LP, 25);
+
 /*================================================================*/
 /* Barometric Altimeter*/
 /*================================================================*/
@@ -112,6 +123,17 @@ PARAM_DEFINE_FLOAT(IEKF_BARO_RW_ND, 3.8e-2f);
  * @decimal 0
  */
 PARAM_DEFINE_FLOAT(IEKF_BARO_RW_CT, 1e4);
+
+/**
+ * Baro low pass filter cut freq
+ *
+ * @group IEKF
+ * @unit Hz
+ * @min 1
+ * @max 250
+ * @decimal 0
+ */
+PARAM_DEFINE_FLOAT(IEKF_BARO_LP, 25);
 
 /*================================================================*/
 /* Magnetometer */
@@ -160,6 +182,17 @@ PARAM_DEFINE_FLOAT(IEKF_MAG_RW_CT, 1e3);
  * @decimal 2
  */
 PARAM_DEFINE_FLOAT(IEKF_MAG_DECL, -4.7);
+
+/**
+ * Mag low pass filter cut freq
+ *
+ * @group IEKF
+ * @unit Hz
+ * @min 1
+ * @max 250
+ * @decimal 0
+ */
+PARAM_DEFINE_FLOAT(IEKF_MAG_LP, 25);
 
 /*================================================================*/
 /* GPS */

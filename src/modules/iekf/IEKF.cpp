@@ -38,11 +38,16 @@ float condMaxDefault = 1e3;
 float betaMaxDefault = 1e21;
 
 IEKF::IEKF() :
+	SuperBlock(NULL, "IEKF"),
 	_nh(), // node handlke
+	// blocks
+	_baroLP(this, "BARO_LP"),
+	_accelLP(this, "ACCEL_LP"),
+	_magLP(this, "MAG_LP"),
 	// sensors
-	_sensorAccel("accel", betaMaxDefault, condMaxDefault, 20),
-	_sensorMag("mag", betaMaxDefault, condMaxDefault, 20),
-	_sensorBaro("baro", betaMaxDefault, condMaxDefault, 20),
+	_sensorAccel("accel", betaMaxDefault, condMaxDefault, 50),
+	_sensorMag("mag", betaMaxDefault, condMaxDefault, 50),
+	_sensorBaro("baro", betaMaxDefault, condMaxDefault, 50),
 	// turning these off for now
 	_sensorGps("gps", betaMaxDefault, condMaxDefault, 0),
 	_sensorAirspeed("airspeed", betaMaxDefault, condMaxDefault, 0),
@@ -138,12 +143,12 @@ IEKF::IEKF() :
 	_xMin(X::vel_N) = -100;
 	_xMin(X::vel_E) = -100;
 	_xMin(X::vel_D) = -100;
-	_xMin(X::gyro_bias_bX) = -0.1;
-	_xMin(X::gyro_bias_bY) = -0.1;
-	_xMin(X::gyro_bias_bZ) = -0.1;
-	_xMin(X::accel_bias_bX) = -1.0;
-	_xMin(X::accel_bias_bY) = -1.0;
-	_xMin(X::accel_bias_bZ) = -1.0;
+	_xMin(X::gyro_bias_bX) = -0.01;
+	_xMin(X::gyro_bias_bY) = -0.01;
+	_xMin(X::gyro_bias_bZ) = -0.01;
+	_xMin(X::accel_bias_bX) = -0.1;
+	_xMin(X::accel_bias_bY) = -0.1;
+	_xMin(X::accel_bias_bZ) = -0.1;
 	_xMin(X::pos_N) = -1e30;
 	_xMin(X::pos_E) = -1e30;
 	_xMin(X::asl) = -1e30;
@@ -160,12 +165,12 @@ IEKF::IEKF() :
 	_xMax(X::vel_N) = 100;
 	_xMax(X::vel_E) = 100;
 	_xMax(X::vel_D) = 100;
-	_xMax(X::gyro_bias_bX) = 0.1;
-	_xMax(X::gyro_bias_bY) = 0.1;
-	_xMax(X::gyro_bias_bZ) = 0.1;
-	_xMax(X::accel_bias_bX) = 1.0;
-	_xMax(X::accel_bias_bY) = 1.0;
-	_xMax(X::accel_bias_bZ) = 1.0;
+	_xMax(X::gyro_bias_bX) = 0.01;
+	_xMax(X::gyro_bias_bY) = 0.01;
+	_xMax(X::gyro_bias_bZ) = 0.01;
+	_xMax(X::accel_bias_bX) = 0.1;
+	_xMax(X::accel_bias_bY) = 0.1;
+	_xMax(X::accel_bias_bZ) = 0.1;
 	_xMax(X::pos_N) = 1e30;
 	_xMax(X::pos_E) = 1e30;
 	_xMax(X::asl) = 1e30;
@@ -272,21 +277,52 @@ Vector<float, X::n> IEKF::dynamics(float t, const Vector<float, X::n> &x, const 
 
 void IEKF::callbackImu(const sensor_combined_s *msg)
 {
+	// calculate dt
+	if (_stateTimestamp == 0) {
+		_stateTimestamp = msg->timestamp;
+		return;
+	}
+
+	float dt = (msg->timestamp - _stateTimestamp) / 1e6f;
+	_stateTimestamp = msg->timestamp;
+
+	// make sure dt is reasonable
+	if (dt < 0 || dt > 0.1f) {
+		return;
+	}
+
+	setDt(dt);
+
 	//ROS_INFO("gyro rate: %f Hz", double(1.0f / dt));
+	Vector3f gyro_b(
+		msg->gyro_rad[0],
+		msg->gyro_rad[1],
+		msg->gyro_rad[2]);
+
+	Vector3f accel_b(
+		msg->accelerometer_m_s2[0],
+		msg->accelerometer_m_s2[1],
+		msg->accelerometer_m_s2[2]);
+
+	Vector3f mag_b(
+		msg->magnetometer_ga[0],
+		msg->magnetometer_ga[1],
+		msg->magnetometer_ga[2]);
 
 	//ROS_INFO("imu callback");
-	_u(U::omega_nb_bX) = msg->gyro_rad[0];
-	_u(U::omega_nb_bY) = msg->gyro_rad[1];
-	_u(U::omega_nb_bZ) = msg->gyro_rad[2];
-	_u(U::accel_bX) = msg->accelerometer_m_s2[0];
-	_u(U::accel_bY) = msg->accelerometer_m_s2[1];
-	_u(U::accel_bZ) = msg->accelerometer_m_s2[2];
+	_u(U::omega_nb_bX) = gyro_b(0);
+	_u(U::omega_nb_bY) = gyro_b(1);
+	_u(U::omega_nb_bZ) = gyro_b(2);
+	_u(U::accel_bX) = accel_b(0);
+	_u(U::accel_bY) = accel_b(1);
+	_u(U::accel_bZ) = accel_b(2);
 
+	_accelLP.update(accel_b);
+	_magLP.update(mag_b);
+	_baroLP.update(msg->baro_alt_meter);
 
 	// update gyro saturation
-	if (Vector3f(_u(U::omega_nb_bX),
-		     _u(U::omega_nb_bY),
-		     _u(U::omega_nb_bZ)).norm() > gyro_saturation_thresh) {
+	if (gyro_b.norm() > gyro_saturation_thresh) {
 		_gyroSaturated = true;
 
 	} else {
@@ -294,9 +330,7 @@ void IEKF::callbackImu(const sensor_combined_s *msg)
 	}
 
 	// update accel saturation
-	if (Vector3f(_u(U::accel_bX),
-		     _u(U::accel_bY),
-		     _u(U::accel_bZ)).norm() > accel_saturation_thresh) {
+	if (accel_b.norm() > accel_saturation_thresh) {
 		_accelSaturated = true;
 
 	} else {
@@ -346,6 +380,10 @@ void IEKF::callbackImu(const sensor_combined_s *msg)
 
 void IEKF::updateParams()
 {
+	// update all block params
+	SuperBlock::updateParams();
+
+	// update ros params
 	_nh.getParam("IEKF_GYRO_ND", _gyro_nd);
 	_nh.getParam("IEKF_GYRO_RW_ND", _gyro_rw_nd);
 	_nh.getParam("IEKF_GYRO_RW_CT", _gyro_rw_ct);
@@ -450,20 +488,6 @@ void IEKF::initializeAttitude(const sensor_combined_s *msg)
 
 void IEKF::predictState(const sensor_combined_s *msg)
 {
-	// calculate dt
-	if (_stateTimestamp == 0) {
-		_stateTimestamp = msg->timestamp;
-		return;
-	}
-
-	float dt = (msg->timestamp - _stateTimestamp) / 1e6f;
-	_stateTimestamp = msg->timestamp;
-
-	// make sure dt is reasonable
-	if (dt < 0 || dt > 0.1f) {
-		return;
-	}
-
 	//ROS_INFO("predict state");
 
 	// normalize quaternions if needed
@@ -475,7 +499,7 @@ void IEKF::predictState(const sensor_combined_s *msg)
 		normalizeQuaternion();
 	}
 
-	//ROS_INFO("prediction rate period: %10.4g", double(dt));
+	//ROS_INFO("prediction rate period: %10.4g", double(getDt()));
 
 	Quatf q_nb = getQuaternionNB();
 
@@ -483,7 +507,7 @@ void IEKF::predictState(const sensor_combined_s *msg)
 	// integrate runge kutta 4th order
 	// TODO move rk4 algorithm to matrixlib
 	// https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods
-	float h = dt;
+	float h = getDt();
 	Vector<float, X::n> k1, k2, k3, k4;
 	k1 = dynamics(0, _x, _u);
 	k2 = dynamics(h / 2, _x + k1 * h / 2, _u);
@@ -515,7 +539,7 @@ void IEKF::predictCovariance(const sensor_combined_s *msg)
 
 	//ROS_INFO("predict covariance");
 
-	//ROS_INFO("covariance prediction rate period: %10.4g", double(dt));
+	//ROS_INFO("ccelcovariance prediction rate period: %10.4g", double(dt));
 	Quatf q_nb = getQuaternionNB();
 
 	// rotation rate
@@ -593,13 +617,13 @@ void IEKF::predictCovariance(const sensor_combined_s *msg)
 
 		// account for gyro saturation
 		if (getGyroSaturated()) {
-			rot_var *= 100;
+			rot_var *= 10;
 		}
 
 		// account for accel saturation
 		if (getAccelSaturated()) {
-			vel_var_z *= 100;
-			vel_var_xy *= 100;
+			vel_var_z *= 10;
+			vel_var_xy *= 10;
 		}
 
 		_Q.setZero();
@@ -750,6 +774,24 @@ void IEKF::correctionLogic(Vector<float, X::n> &dx) const
 
 	if (!getTerrainValid()) {
 		dx(X::terrain_asl) = 0;
+	}
+
+	bool rotating = Vector3f(
+				_u(U::omega_nb_bX),
+				_u(U::omega_nb_bY),
+				_u(U::omega_nb_bZ)).norm() > 30 * deg2radf;
+
+	bool accelerating = Vector3f(_u(U::accel_bX),
+				     _u(U::accel_bY),
+				     _u(U::accel_bZ)).norm() > 1.2f * g;
+
+	if (rotating || accelerating) {
+		dx(X::gyro_bias_bX) = 0;
+		dx(X::gyro_bias_bY) = 0;
+		dx(X::gyro_bias_bZ) = 0;
+		dx(X::accel_bias_bX) = 0;
+		dx(X::accel_bias_bY) = 0;
+		dx(X::accel_bias_bZ) = 0;
 	}
 }
 
