@@ -216,6 +216,19 @@ void Subscriber::callback()
 	}
 }
 
+int Subscriber::getHandle()
+{
+	if (_callbackPtr != NULL) {
+		return _callbackPtr->getHandle();
+
+	} else {
+		ROS_INFO("callback ptr is NULL!");
+		return 0;
+	}
+}
+
+
+
 Publisher::Publisher() :
 	_pub(NULL)
 {

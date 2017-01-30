@@ -143,22 +143,20 @@ int iekf_thread_main(int argc, char *argv[])
 {
 	ros::init(argc, argv, "iekf");
 
-	ros::Rate rate(250);
-
 	ROS_INFO("started");
 
 	if (est == NULL) {
 		est = new IEKF();
 
 	} else {
+
 		ROS_INFO("already running");
 		return -1;
 	}
 
 	while (est->ok()) {
-		est->publish();
-		ros::spin();
-		rate.sleep();
+		// uses polling
+		est->update();
 	}
 
 	ros::shutdown();

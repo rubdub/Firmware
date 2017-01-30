@@ -49,16 +49,16 @@ IEKF::IEKF() :
 	_sensorMag("mag", betaMaxDefault, condMaxDefault, 50),
 	_sensorBaro("baro", betaMaxDefault, condMaxDefault, 50),
 	// turning these off for now
-	_sensorGps("gps", betaMaxDefault, condMaxDefault, 0),
-	_sensorAirspeed("airspeed", betaMaxDefault, condMaxDefault, 0),
-	_sensorFlow("flow", betaMaxDefault, condMaxDefault, 0),
+	_sensorGps("gps", betaMaxDefault, condMaxDefault, 10),
+	_sensorAirspeed("airspeed", betaMaxDefault, condMaxDefault, 10),
+	_sensorFlow("flow", betaMaxDefault, condMaxDefault, 10),
 	_sensorSonar("sonar", betaMaxDefault, condMaxDefault, 10),
-	_sensorLidar("lidar", betaMaxDefault, condMaxDefault, 0),
-	_sensorVision("vision", betaMaxDefault, condMaxDefault, 0),
-	_sensorMocap("mocap", betaMaxDefault, condMaxDefault, 0),
-	_sensorLand("land_detected", betaMaxDefault, condMaxDefault, 0),
+	_sensorLidar("lidar", betaMaxDefault, condMaxDefault, 10),
+	_sensorVision("vision", betaMaxDefault, condMaxDefault, 10),
+	_sensorMocap("mocap", betaMaxDefault, condMaxDefault, 10),
+	_sensorLand("land_detected", betaMaxDefault, condMaxDefault, 10),
 	// subscriptions
-	_subImu(_nh.subscribe("sensor_combined", 0, &IEKF::callbackImu, this, 1000 / 250)),
+	_subImu(_nh.subscribe("sensor_combined", 0, &IEKF::callbackImu, this, 1000 / 1000)),
 	_subGps(_nh.subscribe("vehicle_gps_position", 0, &IEKF::correctGps, this, 1000 / 10)),
 	_subAirspeed(_nh.subscribe("airspeed", 0, &IEKF::correctAirspeed, this, 1000 / 10)),
 	_subFlow(_nh.subscribe("optical_flow", 0, &IEKF::correctFlow, this, 1000 / 10)),
@@ -213,6 +213,24 @@ IEKF::IEKF() :
 	updateParams();
 }
 
+void IEKF::update()
+{
+	// polls
+	px4_pollfd_struct_t polls[1];
+
+	// wait for a sensor update, check for exit condition every 100 ms
+	polls[0].fd = _subImu.getHandle();
+	polls[0].events = POLLIN;
+	int ret = px4_poll(polls, 1, 100);
+
+	if (ret < 0) {
+		return;
+	}
+
+	ros::spin();
+	publish();
+}
+
 Vector<float, X::n> IEKF::dynamics(float t, const Vector<float, X::n> &x, const Vector<float, U::n> &u) const
 {
 	Vector<float, X::n> dx;
@@ -277,22 +295,6 @@ Vector<float, X::n> IEKF::dynamics(float t, const Vector<float, X::n> &x, const 
 
 void IEKF::callbackImu(const sensor_combined_s *msg)
 {
-	// calculate dt
-	if (_stateTimestamp == 0) {
-		_stateTimestamp = msg->timestamp;
-		return;
-	}
-
-	float dt = (msg->timestamp - _stateTimestamp) / 1e6f;
-	_stateTimestamp = msg->timestamp;
-
-	// make sure dt is reasonable
-	if (dt < 0 || dt > 0.1f) {
-		return;
-	}
-
-	setDt(dt);
-
 	//ROS_INFO("gyro rate: %f Hz", double(1.0f / dt));
 	Vector3f gyro_b(
 		msg->gyro_rad[0],
@@ -317,9 +319,9 @@ void IEKF::callbackImu(const sensor_combined_s *msg)
 	_u(U::accel_bY) = accel_b(1);
 	_u(U::accel_bZ) = accel_b(2);
 
-	_accelLP.update(accel_b);
-	_magLP.update(mag_b);
-	_baroLP.update(msg->baro_alt_meter);
+	//_accelLP.update(accel_b);
+	//_magLP.update(mag_b);
+	//_baroLP.update(msg->baro_alt_meter);
 
 	// update gyro saturation
 	if (gyro_b.norm() > gyro_saturation_thresh) {
@@ -340,12 +342,12 @@ void IEKF::callbackImu(const sensor_combined_s *msg)
 	if (_attitudeInitialized) {
 
 		// predict driven by gyro callback
+		uint64_t deadline = _stateTimestamp * 1e3 + 1e9 / 250;
 
 		predictState(msg);
 
-		// set correciton deadline to 10 hz
+		// set correciton deadline to 250 hz
 		int lowRateCount = 5;
-		uint64_t deadline = msg->timestamp * 1e3 + 1e9 / 10;
 
 		// check if sensors are ready using row late cycle
 		if (_imuLowRateIndex % lowRateCount == 0) {
@@ -367,7 +369,7 @@ void IEKF::callbackImu(const sensor_combined_s *msg)
 		float overrunMillis = int32_t(ros::Time::now().toNSec() - deadline) / 1.0e6f;
 
 		if (overrunMillis > 1) {
-			ROS_WARN("correction deadline exceeded by %10.4f msec",
+			ROS_WARN("late %10.4f msec",
 				 double(overrunMillis));
 		}
 
@@ -488,6 +490,20 @@ void IEKF::initializeAttitude(const sensor_combined_s *msg)
 
 void IEKF::predictState(const sensor_combined_s *msg)
 {
+	// calculate dt
+	if (_stateTimestamp == 0) {
+		_stateTimestamp = msg->timestamp;
+		return;
+	}
+
+	float dt = (msg->timestamp - _stateTimestamp) / 1e6f;
+	_stateTimestamp = msg->timestamp;
+
+	// make sure dt is reasonable
+	if (dt < 0 || dt > 0.1f) {
+		return;
+	}
+
 	//ROS_INFO("predict state");
 
 	// normalize quaternions if needed
@@ -499,15 +515,13 @@ void IEKF::predictState(const sensor_combined_s *msg)
 		normalizeQuaternion();
 	}
 
-	//ROS_INFO("prediction rate period: %10.4g", double(getDt()));
-
-	Quatf q_nb = getQuaternionNB();
+	//ROS_INFO("prediction rate: %10.4g Hz", double(1/dt));
 
 	// continuous time kalman filter prediction
 	// integrate runge kutta 4th order
 	// TODO move rk4 algorithm to matrixlib
 	// https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods
-	float h = getDt();
+	float h = dt;
 	Vector<float, X::n> k1, k2, k3, k4;
 	k1 = dynamics(0, _x, _u);
 	k2 = dynamics(h / 2, _x + k1 * h / 2, _u);
@@ -517,6 +531,9 @@ void IEKF::predictState(const sensor_combined_s *msg)
 
 	//ROS_INFO("dx predict \n");
 	//dx.print();
+
+	// euler integration
+	//Vector<float, X::n> dx = dynamics(0, _x, _u)*dt;
 
 	incrementX(dx);
 }

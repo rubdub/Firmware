@@ -81,6 +81,7 @@ public:
 
 	// methods
 	//
+	void update();
 	Vector<float, X::n> dynamics(
 		float t, const Vector<float, X::n> &x,
 		const Vector<float, U::n> &u) const;

@@ -113,6 +113,7 @@ public:
 	void callback();
 	CallbackInterface *_callbackPtr;
 	~Subscriber();
+	int getHandle();
 };
 
 /**
@@ -153,6 +154,7 @@ public:
 	virtual ~CallbackInterface()
 	{
 	}
+	virtual int getHandle() = 0;
 private:
 	CallbackInterface(const CallbackInterface &other);
 	const CallbackInterface &operator=(const CallbackInterface &other);
@@ -176,6 +178,11 @@ public:
 		_callbackFuncPtr(callbackFuncPtr),
 		_objPtr(obj)
 	{
+	}
+
+	int getHandle()
+	{
+		return _sub.getHandle();
 	}
 
 	virtual void callback()
