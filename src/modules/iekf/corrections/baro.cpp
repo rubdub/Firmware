@@ -51,7 +51,16 @@ void IEKF::correctBaro(const sensor_combined_s *msg)
 		_origin.altInitialize(msg->baro_alt_meter, msg->timestamp);
 		_x(X::baro_bias) = 0;
 		_baroOffset = 0;
-		_x(X::asl) = msg->baro_alt_meter;
+		float alt_m = msg->baro_alt_meter;
+		_x(X::asl) = alt_m;
+		// initial terrain guess
+		_baroOffset = 0;
+		_x(X::asl) = alt_m;
+
+		// if we have no terrain data, guess we are on the ground
+		if (!getTerrainValid()) {
+			_x(X::terrain_asl) = alt_m;
+		}
 	}
 
 	// calculate residual

@@ -360,7 +360,7 @@ PARAM_DEFINE_FLOAT(IEKF_PN_VXY_ND, 1e-1f);
  * @max 1e0
  * @decimal 5
  */
-PARAM_DEFINE_FLOAT(IEKF_PN_Z_ND, 0);
+PARAM_DEFINE_FLOAT(IEKF_PN_Z_ND, 1e-1f);
 
 /**
  * Process noise z velocity noise density
@@ -393,4 +393,4 @@ PARAM_DEFINE_FLOAT(IEKF_PN_ROT_ND, 1e-3f);
  * @max 1e0
  * @decimal 5
  */
-PARAM_DEFINE_FLOAT(IEKF_PN_T_ASL_ND, 1e-1f);
+PARAM_DEFINE_FLOAT(IEKF_PN_T_ASL_ND, 1e-2f);
