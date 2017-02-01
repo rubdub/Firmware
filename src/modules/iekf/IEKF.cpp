@@ -194,16 +194,16 @@ IEKF::IEKF() :
 	_P0Diag(Xe::vel_N) = 0;
 	_P0Diag(Xe::vel_E) = 0;
 	_P0Diag(Xe::vel_D) = 0;
-	_P0Diag(Xe::gyro_bias_N) = 1e-4;
-	_P0Diag(Xe::gyro_bias_E) = 1e-4;
-	_P0Diag(Xe::gyro_bias_D) = 1e-4;
-	_P0Diag(Xe::accel_bias_N) = 1e-4;
-	_P0Diag(Xe::accel_bias_E) = 1e-4;
-	_P0Diag(Xe::accel_bias_D) = 1e-4;
+	_P0Diag(Xe::gyro_bias_N) = 1e-6f;
+	_P0Diag(Xe::gyro_bias_E) = 1e-6f;
+	_P0Diag(Xe::gyro_bias_D) = 1e-6f;
+	_P0Diag(Xe::accel_bias_N) = 1e-6f;
+	_P0Diag(Xe::accel_bias_E) = 1e-6f;
+	_P0Diag(Xe::accel_bias_D) = 1e-6f;
 	_P0Diag(Xe::pos_N) = 0;
 	_P0Diag(Xe::pos_E) = 0;
-	_P0Diag(Xe::asl) = 0;
-	_P0Diag(Xe::terrain_asl) = 0;
+	_P0Diag(Xe::asl) = 1e4;
+	_P0Diag(Xe::terrain_asl) = 1e4;
 	_P0Diag(Xe::baro_bias) = 0;
 	//_P0Diag(Xe::wind_N) = 0;
 	//_P0Diag(Xe::wind_E) = 0;
@@ -348,7 +348,7 @@ void IEKF::callbackImu(const sensor_combined_s *msg)
 		predictState(msg);
 
 		// set correciton deadline to 250 hz
-		
+
 		// max update rate of innert loops, 10 hz
 		int lowRateCount = 25;
 
@@ -471,16 +471,18 @@ void IEKF::initializeAttitude(const sensor_combined_s *msg)
 	_x(X::q_nb_2) = q_nb(2);
 	_x(X::q_nb_3) = q_nb(3);
 
-	//for (int i=0; i < 3; i++) {
-	//for (int j=0; j < 3; j++) {
-	//_P(Xe::gyro_bias_N + i, Xe::gyro_bias_N + j) = 0;
-	//if (i == j) {
-	//_P(Xe::rot_N + i, Xe::rot_N + j) = 0.1f;
-	//} else {
-	//_P(Xe::rot_N + i, Xe::rot_N + j) = 0;
-	//}
-	//}
-	//}
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			_P(Xe::gyro_bias_N + i, Xe::gyro_bias_N + j) = 0;
+
+			if (i == j) {
+				_P(Xe::rot_N + i, Xe::rot_N + j) = 0.1f;
+
+			} else {
+				_P(Xe::rot_N + i, Xe::rot_N + j) = 0;
+			}
+		}
+	}
 
 	_attitudeInitialized = true;
 

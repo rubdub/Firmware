@@ -101,6 +101,10 @@ mavlink stream -r 50 -s SERVO_OUTPUT_RAW_0 -u 14556
 mavlink stream -r 20 -s RC_CHANNELS -u 14556
 mavlink stream -r 250 -s HIGHRES_IMU -u 14556
 mavlink stream -r 10 -s OPTICAL_FLOW_RAD -u 14556
+mavlink stream -r 10 -s ESTIMATOR_STATE -u 14556
+mavlink stream -r 10 -s ESTIMATOR_STATE_STD -u 14556
+mavlink stream -r 10 -s ESTIMATOR_INNOV -u 14556
+mavlink stream -r 10 -s ESTIMATOR_INNOV_STD -u 14556
 logger start -e -t
 mavlink boot_complete
 replay trystart

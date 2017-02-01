@@ -107,7 +107,15 @@ void IEKF::correctAccel(const sensor_combined_s *msg)
 	_innovStd(Innov::ACCEL_acc_Z) = sqrtf(S(2, 2));
 
 	if (_sensorAccel.shouldCorrect()) {
-		// don't allow correction of yaw
+		_dxe(Xe::pos_N) = 0;
+		_dxe(Xe::pos_E) = 0;
+		_dxe(Xe::asl) = 0;
+		_dxe(Xe::vel_N) = 0;
+		_dxe(Xe::vel_E) = 0;
+		_dxe(Xe::vel_D) = 0;
+		_dxe(Xe::accel_bias_N) = 0;
+		_dxe(Xe::accel_bias_E) = 0;
+		_dxe(Xe::accel_bias_D) = 0;
 		_dxe(Xe::rot_D) = 0;
 		Vector<float, X::n> dx = computeErrorCorrection(_dxe);
 		incrementX(dx);

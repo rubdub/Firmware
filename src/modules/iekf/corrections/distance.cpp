@@ -106,8 +106,12 @@ void IEKF::correctDistance(const distance_sensor_s *msg)
 	float agl = _x(X::asl) - _x(X::terrain_asl);
 	float yh = agl / C_nb(2, 2);
 
-	// measured airspeed
-	float y = msg->current_distance;
+	// measured distance
+	float lidar_offset = 1.0;
+	float y = msg->current_distance - lidar_offset;
+
+	//ROS_INFO("lidar yh: %10.4e", double(yh));
+	//ROS_INFO("lidar y: %10.4e", double(y));
 
 	Vector<float, 1> r;
 	r(0) = y - yh;
@@ -142,8 +146,18 @@ void IEKF::correctDistance(const distance_sensor_s *msg)
 	}
 
 	if (sensor->shouldCorrect()) {
+		ROS_INFO("correcting lidar");
+		// don't allow attitude correction
+		_dxe(Xe::rot_N) = 0;
+		_dxe(Xe::rot_E) = 0;
+		_dxe(Xe::rot_D) = 0;
+		_dxe(Xe::gyro_bias_N) = 0;
+		_dxe(Xe::gyro_bias_E) = 0;
+		_dxe(Xe::gyro_bias_D) = 0;
 		Vector<float, X::n> dx = computeErrorCorrection(_dxe);
-		incrementX(dx);
 		incrementP(_dP);
+
+	} else {
+		ROS_INFO("NOT correcting lidar");
 	}
 }

@@ -56,6 +56,15 @@ void IEKF::correctLand(uint64_t timestamp)
 
 	//ROS_INFO("correct land");
 
+	// init global reference
+	if (_origin.altInitialized() && !_origin.xyInitialized()) {
+		float lat_deg = 47.397742f;
+		float lon_deg = 8.545594f;
+		ROS_INFO("land origin init lat: %12.6f deg lon: %12.6f deg",
+			 double(lat_deg), double(lon_deg));
+		_origin.xyInitialize(lat_deg, lon_deg, timestamp);
+	}
+
 	// calculate residual
 	Vector<float, Y_land::n> y;
 	y(Y_land::vel_N) = 0;
@@ -63,11 +72,20 @@ void IEKF::correctLand(uint64_t timestamp)
 	y(Y_land::vel_D) = 0;
 	y(Y_land::agl) = 0;
 
+	//ROS_INFO("y");
+	//y.print();
+
 	Vector<float, Y_land::n> yh;
 	yh(Y_land::vel_N) = _x(X::vel_N);
 	yh(Y_land::vel_E) = _x(X::vel_E);
 	yh(Y_land::vel_D) = _x(X::vel_D);
 	yh(Y_land::agl) = getAgl();
+
+	//ROS_INFO("yh");
+	//yh.print();
+
+	//ROS_INFO("terrain %10.4f", double(_x(X::terrain_asl)));
+	//ROS_INFO("asl %10.4f", double(_x(X::asl)));
 
 	Vector<float, Y_land::n> r = y - yh;
 
@@ -105,6 +123,13 @@ void IEKF::correctLand(uint64_t timestamp)
 	_innovStd(Innov::LAND_agl) = sqrtf(S(3, 3));
 
 	if (_sensorLand.shouldCorrect()) {
+		// don't allow attitude correction
+		_dxe(Xe::rot_N) = 0;
+		_dxe(Xe::rot_E) = 0;
+		_dxe(Xe::rot_D) = 0;
+		_dxe(Xe::gyro_bias_N) = 0;
+		_dxe(Xe::gyro_bias_E) = 0;
+		_dxe(Xe::gyro_bias_D) = 0;
 		Vector<float, X::n> dx = computeErrorCorrection(_dxe);
 		incrementX(dx);
 		incrementP(_dP);

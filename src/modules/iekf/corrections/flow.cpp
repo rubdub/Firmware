@@ -40,6 +40,11 @@ void IEKF::correctFlow(const optical_flow_s *msg)
 		return;
 	}
 
+	// abort if flow quality low
+	if (msg->quality < 100) {
+		return;
+	}
+
 	//ROS_INFO("correct flow");
 	// return if no new data
 	float dt = 0;
@@ -194,15 +199,13 @@ void IEKF::correctFlow(const optical_flow_s *msg)
 	_innovStd(Innov::FLOW_flow_Y) = sqrtf(S(1, 1));
 
 	if (_sensorFlow.shouldCorrect()) {
-		//ROS_INFO("dP");
-		//dP.diag().print();
-		// only correct velocity
-		for (int i = 0; i < Xe::n; i++) {
-			if (i != Xe::vel_N && i != Xe::vel_E) {
-				_dxe(i) = 0;
-			}
-		}
-
+		// don't allow attitude correction
+		_dxe(Xe::rot_N) = 0;
+		_dxe(Xe::rot_E) = 0;
+		_dxe(Xe::rot_D) = 0;
+		_dxe(Xe::gyro_bias_N) = 0;
+		_dxe(Xe::gyro_bias_E) = 0;
+		_dxe(Xe::gyro_bias_D) = 0;
 		Vector<float, X::n> dx = computeErrorCorrection(_dxe);
 		incrementX(dx);
 		incrementP(_dP);

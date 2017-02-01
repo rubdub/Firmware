@@ -104,17 +104,17 @@ public:
 		_beta = beta;
 		_cond = cond;
 
-		//if (beta > betaWarn) {
-			//ROS_WARN("%s fault: beta %10.4f", _name, double(beta));
-		//}
+		if (beta > betaWarn) {
+			ROS_WARN("%s fault: beta %10.4f", _name, double(beta));
+		}
 
-		//if (beta > _betaMax) {
-			//ROS_INFO("beyond beta max, not correcting");
-		//};
+		if (beta > _betaMax) {
+			ROS_INFO("beyond beta max, not correcting");
+		};
 
-		//if (cond > _condMax) {
-			//ROS_WARN("%s poorly conditioned %10.4f", _name, double(cond));
-		//}
+		if (cond > _condMax) {
+			ROS_WARN("%s poorly conditioned %10.4f", _name, double(cond));
+		}
 	}
 
 	template<class Type, size_t n_x, size_t n_y>
