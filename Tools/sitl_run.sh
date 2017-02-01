@@ -137,6 +137,9 @@ then
 elif [ "$debugger" == "valgrind" ]
 then
 	valgrind $sitl_command
+elif [ "$debugger" == "callgrind" ]
+then
+	valgrind --tool=callgrind -v $sitl_command
 elif [ "$debugger" == "ide" ]
 then
 	echo "######################################################################"

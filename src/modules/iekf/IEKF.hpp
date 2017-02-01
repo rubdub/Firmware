@@ -121,7 +121,7 @@ public:
 	inline void incrementP(const SquareMatrix<float, Xe::n> &dP)
 	{
 		_P += dP;
-		boundP();
+		// don't boundP here, too much cpu
 	}
 	void setX(const Vector<float, X::n> &x)
 	{
@@ -224,9 +224,9 @@ private:
 	ros::NodeHandle _nh;
 
 	// blocks
-	BlockLowPass _baroLP;
-	BlockLowPassVector<float, 3> _accelLP;
-	BlockLowPassVector<float, 3> _magLP;
+	//BlockLowPass _baroLP;
+	//BlockLowPassVector<float, 3> _accelLP;
+	//BlockLowPassVector<float, 3> _magLP;
 
 	// sensors
 	Sensor _sensorAccel;

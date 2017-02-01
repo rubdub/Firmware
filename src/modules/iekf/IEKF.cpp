@@ -41,9 +41,9 @@ IEKF::IEKF() :
 	SuperBlock(NULL, "IEKF"),
 	_nh(), // node handlke
 	// blocks
-	_baroLP(this, "BARO_LP"),
-	_accelLP(this, "ACCEL_LP"),
-	_magLP(this, "MAG_LP"),
+	//_baroLP(this, "BARO_LP"),
+	//_accelLP(this, "ACCEL_LP"),
+	//_magLP(this, "MAG_LP"),
 	// sensors
 	_sensorAccel("accel", betaMaxDefault, condMaxDefault, 50),
 	_sensorMag("mag", betaMaxDefault, condMaxDefault, 50),
@@ -143,9 +143,9 @@ IEKF::IEKF() :
 	_xMin(X::vel_N) = -100;
 	_xMin(X::vel_E) = -100;
 	_xMin(X::vel_D) = -100;
-	_xMin(X::gyro_bias_bX) = -0.01;
-	_xMin(X::gyro_bias_bY) = -0.01;
-	_xMin(X::gyro_bias_bZ) = -0.01;
+	_xMin(X::gyro_bias_bX) = -0.1;
+	_xMin(X::gyro_bias_bY) = -0.1;
+	_xMin(X::gyro_bias_bZ) = -0.1;
 	_xMin(X::accel_bias_bX) = -0.1;
 	_xMin(X::accel_bias_bY) = -0.1;
 	_xMin(X::accel_bias_bZ) = -0.1;
@@ -165,9 +165,9 @@ IEKF::IEKF() :
 	_xMax(X::vel_N) = 100;
 	_xMax(X::vel_E) = 100;
 	_xMax(X::vel_D) = 100;
-	_xMax(X::gyro_bias_bX) = 0.01;
-	_xMax(X::gyro_bias_bY) = 0.01;
-	_xMax(X::gyro_bias_bZ) = 0.01;
+	_xMax(X::gyro_bias_bX) = 0.1;
+	_xMax(X::gyro_bias_bY) = 0.1;
+	_xMax(X::gyro_bias_bZ) = 0.1;
 	_xMax(X::accel_bias_bX) = 0.1;
 	_xMax(X::accel_bias_bY) = 0.1;
 	_xMax(X::accel_bias_bZ) = 0.1;
@@ -194,12 +194,12 @@ IEKF::IEKF() :
 	_P0Diag(Xe::vel_N) = 0;
 	_P0Diag(Xe::vel_E) = 0;
 	_P0Diag(Xe::vel_D) = 0;
-	_P0Diag(Xe::gyro_bias_N) = 0;
-	_P0Diag(Xe::gyro_bias_E) = 0;
-	_P0Diag(Xe::gyro_bias_D) = 0;
-	_P0Diag(Xe::accel_bias_N) = 0;
-	_P0Diag(Xe::accel_bias_E) = 0;
-	_P0Diag(Xe::accel_bias_D) = 0;
+	_P0Diag(Xe::gyro_bias_N) = 1e-4;
+	_P0Diag(Xe::gyro_bias_E) = 1e-4;
+	_P0Diag(Xe::gyro_bias_D) = 1e-4;
+	_P0Diag(Xe::accel_bias_N) = 1e-4;
+	_P0Diag(Xe::accel_bias_E) = 1e-4;
+	_P0Diag(Xe::accel_bias_D) = 1e-4;
 	_P0Diag(Xe::pos_N) = 0;
 	_P0Diag(Xe::pos_E) = 0;
 	_P0Diag(Xe::asl) = 0;
@@ -342,12 +342,15 @@ void IEKF::callbackImu(const sensor_combined_s *msg)
 	if (_attitudeInitialized) {
 
 		// predict driven by gyro callback
-		uint64_t deadline = _stateTimestamp * 1e3 + 1e9 / 250;
+		// deadline is 100 hz
+		uint64_t deadline = _stateTimestamp * 1e3 + 1e9 / 100;
 
 		predictState(msg);
 
 		// set correciton deadline to 250 hz
-		int lowRateCount = 5;
+		
+		// max update rate of innert loops, 10 hz
+		int lowRateCount = 25;
 
 		// check if sensors are ready using row late cycle
 		if (_imuLowRateIndex % lowRateCount == 0) {
@@ -590,7 +593,8 @@ void IEKF::predictCovariance(const sensor_combined_s *msg)
 
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 3; j++) {
-				_A(Xe::gyro_bias_N + i, Xe::gyro_bias_N + j) = g_tmp(i, j);
+				// this term isn't helpful, lets bias drift too much
+				//_A(Xe::gyro_bias_N + i, Xe::gyro_bias_N + j) = g_tmp(i, j);
 			}
 		}
 
@@ -683,32 +687,16 @@ void IEKF::predictCovariance(const sensor_combined_s *msg)
 	_dP += _Q;
 	incrementP(_dP * dt);
 
-	//ROS_INFO("P:");
-	//_P.diag().print();
-
-	//ROS_INFO("");
-	//ROS_INFO("rot (deg) stddev: %10.4f %10.4f %10.4f",
-	//double(rad2degf * sqrtf(_P(Xe::rot_N, Xe::rot_N))),
-	//double(rad2degf * sqrtf(_P(Xe::rot_E, Xe::rot_E))),
-	//double(rad2degf * sqrtf(_P(Xe::rot_D, Xe::rot_D))));
-	//ROS_INFO("pos (m) stddev: %10.4f %10.4f %10.4f",
-	//double(sqrtf(_P(Xe::pos_N, Xe::pos_N))),
-	//double(sqrtf(_P(Xe::pos_E, Xe::pos_E))),
-	//double(sqrtf(_P(Xe::asl, Xe::asl))));
-	//ROS_INFO("vel (m/s) stddev: %10.4f %10.4f %10.4f",
-	//double(sqrtf(_P(Xe::vel_N, Xe::vel_N))),
-	//double(sqrtf(_P(Xe::vel_E, Xe::vel_E))),
-	//double(sqrtf(_P(Xe::vel_D, Xe::vel_D))));
-	//ROS_INFO("accel bias: %10.4f %10.4f %10.4f",
-	//double(_x(X::accel_bias_bX)),
-	//double(_x(X::accel_bias_bY)),
-	//double(_x(X::accel_bias_bZ)));
-	//ROS_INFO("accel bias (m/s^2) stddev: %10.4f %10.4f %10.4f",
-	//double(sqrtf(_P(Xe::accel_bias_N, Xe::accel_bias_N))),
-	//double(sqrtf(_P(Xe::accel_bias_E, Xe::accel_bias_E))),
-	//double(sqrtf(_P(Xe::accel_bias_D, Xe::accel_bias_D))));
-
-	//ROS_INFO("baro bias stddev (m) %10.4f", double(sqrtf(_P(Xe::baro_bias, Xe::baro_bias))));
+	// force PSD using cholesky decomposition
+	// This decomposes the matrix into L * L.T
+	// then multiplies it back to zero.
+	// The matrix cholesky decomposition nulls
+	// any negative components in the decomposition.
+	// This isn't strickly the closest PSD matrix
+	// to P, but it does the job of keeping the small
+	// terms from going negative.
+	_P = cholesky(_P);
+	_P *= _P.T();
 }
 
 Vector<float, X::n> IEKF::computeErrorCorrection(const Vector<float, Xe::n> &d_xe) const
@@ -814,17 +802,6 @@ void IEKF::correctionLogic(Vector<float, X::n> &dx) const
 
 void IEKF::boundP()
 {
-	// force PSD using cholesky decomposition
-	// This decomposes the matrix into L * L.T
-	// then multiplies it back to zero.
-	// The matrix cholesky decomposition nulls
-	// any negative components in the decomposition.
-	// This isn't strickly the closest PSD matrix
-	// to P, but it does the job of keeping the small
-	// terms from going negative.
-	_P = cholesky(_P);
-	_P *= _P.T();
-
 	for (int i = 0; i < Xe::n; i++) {
 		// only operate on upper triangle, then copy to lower
 

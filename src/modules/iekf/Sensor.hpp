@@ -104,17 +104,17 @@ public:
 		_beta = beta;
 		_cond = cond;
 
-		if (beta > betaWarn) {
-			ROS_WARN("%s fault: beta %10.4f", _name, double(beta));
-		}
+		//if (beta > betaWarn) {
+			//ROS_WARN("%s fault: beta %10.4f", _name, double(beta));
+		//}
 
-		if (beta > _betaMax) {
-			ROS_INFO("beyond beta max, not correcting");
-		};
+		//if (beta > _betaMax) {
+			//ROS_INFO("beyond beta max, not correcting");
+		//};
 
-		if (cond > _condMax) {
-			ROS_WARN("%s poorly conditioned %10.4f", _name, double(cond));
-		}
+		//if (cond > _condMax) {
+			//ROS_WARN("%s poorly conditioned %10.4f", _name, double(cond));
+		//}
 	}
 
 	template<class Type, size_t n_x, size_t n_y>
@@ -152,13 +152,13 @@ public:
 		Matrix<Type, n_x, n_y> K = P * H.T() * tmp;
 		setCorrectionInfo(beta, cond);
 
-		//dP = -K * H * P;
+		dP = -K * H * P;
 
 		// use jospeh form to make sure it stays positive definite
-		SquareMatrix<Type, n_x> tmp2 = eye<float, Xe::n>() - K * H;
-		dP = tmp2 * P * tmp2.T();
-		dP += K * R * K.T();
-		dP -= P;
+		//SquareMatrix<Type, n_x> tmp2 = eye<float, Xe::n>() - K * H;
+		//dP = tmp2 * P * tmp2.T();
+		//dP += K * R * K.T();
+		//dP -= P;
 		dx = K * r;
 	}
 
