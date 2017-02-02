@@ -81,8 +81,6 @@ void IEKF::correctDistance(const distance_sensor_s *msg)
 		return;
 	}
 
-	//ROS_INFO("correct dist bottom");
-
 	// attitude info
 	Dcmf C_nb = Quaternion<float>(
 			    _x(X::q_nb_0), _x(X::q_nb_1),
@@ -107,8 +105,7 @@ void IEKF::correctDistance(const distance_sensor_s *msg)
 	float yh = agl / C_nb(2, 2);
 
 	// measured distance
-	float lidar_offset = 1.0;
-	float y = msg->current_distance - lidar_offset;
+	float y = msg->current_distance;
 
 	//ROS_INFO("lidar yh: %10.4e", double(yh));
 	//ROS_INFO("lidar y: %10.4e", double(y));
@@ -146,6 +143,7 @@ void IEKF::correctDistance(const distance_sensor_s *msg)
 	}
 
 	if (sensor->shouldCorrect()) {
+		ROS_INFO("correct dist bottom");
 		// don't allow attitude correction
 		_dxe(Xe::rot_N) = 0;
 		_dxe(Xe::rot_E) = 0;

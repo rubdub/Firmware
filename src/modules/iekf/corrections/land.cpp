@@ -47,6 +47,14 @@ void IEKF::correctLand(uint64_t timestamp)
 		return;
 	}
 
+	// return if too far from ground
+	if (getAgl() > 0.2f) {
+		return;
+	}
+
+	// require agl < 0.3 m
+	//
+
 	// return if no new data or too fast
 	float dt = 0;
 

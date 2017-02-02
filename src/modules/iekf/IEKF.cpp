@@ -44,19 +44,19 @@ IEKF::IEKF() :
 	//_baroLP(this, "BARO_LP"),
 	//_accelLP(this, "ACCEL_LP"),
 	//_magLP(this, "MAG_LP"),
-	// sensors
-	_sensorAccel("accel", betaMaxDefault, condMaxDefault, 20),
-	_sensorMag("mag", betaMaxDefault, condMaxDefault, 20),
-	_sensorBaro("baro", betaMaxDefault, condMaxDefault, 20),
+	// sensors, rates set in updateParam, default to 0
+	_sensorAccel("accel", betaMaxDefault, condMaxDefault, 0),
+	_sensorMag("mag", betaMaxDefault, condMaxDefault, 0),
+	_sensorBaro("baro", betaMaxDefault, condMaxDefault, 0),
 	// turning these off for now
-	_sensorGps("gps", betaMaxDefault, condMaxDefault, 20),
-	_sensorAirspeed("airspeed", betaMaxDefault, condMaxDefault, 20),
-	_sensorFlow("flow", betaMaxDefault, condMaxDefault, 20),
-	_sensorSonar("sonar", betaMaxDefault, condMaxDefault, 20),
-	_sensorLidar("lidar", betaMaxDefault, condMaxDefault, 20),
-	_sensorVision("vision", betaMaxDefault, condMaxDefault, 20),
-	_sensorMocap("mocap", betaMaxDefault, condMaxDefault, 20),
-	_sensorLand("land_detected", betaMaxDefault, condMaxDefault, 20),
+	_sensorGps("gps", betaMaxDefault, condMaxDefault, 0),
+	_sensorAirspeed("airspeed", betaMaxDefault, condMaxDefault, 0),
+	_sensorFlow("flow", betaMaxDefault, condMaxDefault, 0),
+	_sensorSonar("sonar", betaMaxDefault, condMaxDefault, 0),
+	_sensorLidar("lidar", betaMaxDefault, condMaxDefault, 0),
+	_sensorVision("vision", betaMaxDefault, condMaxDefault, 0),
+	_sensorMocap("mocap", betaMaxDefault, condMaxDefault, 0),
+	_sensorLand("land_detected", betaMaxDefault, condMaxDefault, 0),
 	// subscriptions
 	_subImu(_nh.subscribe("sensor_combined", 0, &IEKF::callbackImu, this, 1000 / 1000)),
 	_subGps(_nh.subscribe("vehicle_gps_position", 0, &IEKF::correctGps, this, 1000 / 10)),
@@ -427,6 +427,19 @@ void IEKF::updateParams()
 	_nh.getParam("IEKF_PN_VZ_ND", _pn_vz_nd);
 	_nh.getParam("IEKF_PN_ROT_ND", _pn_rot_nd);
 	_nh.getParam("IEKF_PN_T_ASL_ND", _pn_t_asl_nd);
+
+
+	_nh.getParam("IEKF_RATE_ACCEL", _sensorAccel.getRateMax());
+	_nh.getParam("IEKF_RATE_MAG", _sensorMag.getRateMax());
+	_nh.getParam("IEKF_RATE_BARO", _sensorBaro.getRateMax());
+	_nh.getParam("IEKF_RATE_GPS", _sensorGps.getRateMax());
+	_nh.getParam("IEKF_RATE_AIRSPD", _sensorAirspeed.getRateMax());
+	_nh.getParam("IEKF_RATE_FLOW", _sensorFlow.getRateMax());
+	_nh.getParam("IEKF_RATE_SONAR", _sensorSonar.getRateMax());
+	_nh.getParam("IEKF_RATE_LIDAR", _sensorLidar.getRateMax());
+	_nh.getParam("IEKF_RATE_VISION", _sensorVision.getRateMax());
+	_nh.getParam("IEKF_RATE_MOCAP", _sensorMocap.getRateMax());
+	_nh.getParam("IEKF_RATE_LAND", _sensorLand.getRateMax());
 }
 
 void IEKF::callbackParamUpdate(const parameter_update_s *msg)

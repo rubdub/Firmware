@@ -161,6 +161,9 @@ public:
 		//dP -= P;
 		dx = K * r;
 	}
+	float & getRateMax() {
+		return _rateMax;
+	}
 
 private:
 	uint64_t _timestamp; // time of last read

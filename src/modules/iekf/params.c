@@ -394,3 +394,116 @@ PARAM_DEFINE_FLOAT(IEKF_PN_ROT_ND, 1e-3f);
  * @decimal 5
  */
 PARAM_DEFINE_FLOAT(IEKF_PN_T_ASL_ND, 1e-2f);
+
+/**
+ * Accel max rate
+ *
+ * (for attitude correction/ integration
+ *  uses full rate)
+ *
+ * @group IEKF
+ * @unit Hz
+ * @min 0
+ * @max 50
+ */
+PARAM_DEFINE_FLOAT(IEKF_RATE_ACCEL, 20);
+
+/**
+ * Mag max rate
+ *
+ * @group IEKF
+ * @unit Hz
+ * @min 0
+ * @max 50
+ */
+PARAM_DEFINE_FLOAT(IEKF_RATE_MAG, 20);
+
+/**
+ * Baro max rate
+ *
+ * @group IEKF
+ * @unit Hz
+ * @min 0
+ * @max 50
+ */
+PARAM_DEFINE_FLOAT(IEKF_RATE_BARO, 20);
+
+/**
+ * GPS max rate
+ *
+ * @group IEKF
+ * @unit Hz
+ * @min 0
+ * @max 20
+ */
+PARAM_DEFINE_FLOAT(IEKF_RATE_GPS, 10);
+
+/**
+ * Airpseed max rate
+ *
+ * @group IEKF
+ * @unit Hz
+ * @min 0
+ * @max 20
+ */
+PARAM_DEFINE_FLOAT(IEKF_RATE_AIRSPD, 10);
+
+/**
+ * Flow max rate
+ *
+ * @group IEKF
+ * @unit Hz
+ * @min 0
+ * @max 20
+ */
+PARAM_DEFINE_FLOAT(IEKF_RATE_FLOW, 20);
+
+/**
+ * Sonar max rate
+ *
+ * @group IEKF
+ * @unit Hz
+ * @min 0
+ * @max 50
+ */
+PARAM_DEFINE_FLOAT(IEKF_RATE_SONAR, 20);
+
+/**
+ * Lidar max rate
+ *
+ * @group IEKF
+ * @unit Hz
+ * @min 0
+ * @max 50
+ */
+PARAM_DEFINE_FLOAT(IEKF_RATE_LIDAR, 20);
+
+/**
+ * Vision max rate
+ *
+ * @group IEKF
+ * @unit Hz
+ * @min 0
+ * @max 50
+ */
+PARAM_DEFINE_FLOAT(IEKF_RATE_VISION, 20);
+
+**
+ * Mocap max rate
+ *
+ * @group IEKF
+ * @unit Hz
+ * @min 0
+ * @max 50
+ */
+PARAM_DEFINE_FLOAT(IEKF_RATE_MOCAP, 20);
+
+**
+ * Land max rate
+ *
+ * @group IEKF
+ * @unit Hz
+ * @min 0
+ * @max 50
+ */
+PARAM_DEFINE_FLOAT(IEKF_RATE_LAND, 20);

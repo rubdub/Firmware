@@ -37,15 +37,16 @@ void IEKF::correctFlow(const optical_flow_s *msg)
 {
 	// requires terrain estimate
 	if (!getTerrainValid()) {
+		ROS_INFO("flow abort - terrain invalid");
 		return;
 	}
 
 	// abort if flow quality low
 	if (msg->quality < 100) {
+		ROS_INFO("flow abort - low quality %10d", msg->quality);
 		return;
 	}
 
-	//ROS_INFO("correct flow");
 	// return if no new data
 	float dt = 0;
 
@@ -53,8 +54,7 @@ void IEKF::correctFlow(const optical_flow_s *msg)
 		return;
 	}
 
-	//ROS_INFO("correct flow");
-
+	ROS_INFO("correct flow");
 	// compute agl
 	float agl = getAgl();
 
@@ -69,6 +69,7 @@ void IEKF::correctFlow(const optical_flow_s *msg)
 
 	// return if too close to ground
 	if (agl < 0.2f) {
+		ROS_INFO("flow abort - too close to ground: %10.4f", double(agl));
 		return;
 	}
 
@@ -114,8 +115,8 @@ void IEKF::correctFlow(const optical_flow_s *msg)
 	y(0) = -msg->pixel_flow_y_integral / flow_dt;
 	y(1) = msg->pixel_flow_x_integral / flow_dt;
 
-	//ROS_INFO("flow X %10.4f Y %10.4f", double(y(0)), double(y(1)));
-	//ROS_INFO("vel N %10.4f E %10.4f", double(vel_N), double(vel_E));
+	ROS_INFO("flow X %10.4f Y %10.4f", double(y(0)), double(y(1)));
+	ROS_INFO("vel N %10.4f E %10.4f", double(vel_N), double(vel_E));
 
 	// residual
 	Vector<float, Y_flow::n> r = y - yh;
@@ -199,6 +200,7 @@ void IEKF::correctFlow(const optical_flow_s *msg)
 	_innovStd(Innov::FLOW_flow_Y) = sqrtf(S(1, 1));
 
 	if (_sensorFlow.shouldCorrect()) {
+		ROS_INFO("correct flow");
 		// don't allow attitude correction
 		_dxe(Xe::rot_N) = 0;
 		_dxe(Xe::rot_E) = 0;

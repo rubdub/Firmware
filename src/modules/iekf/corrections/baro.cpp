@@ -96,6 +96,17 @@ void IEKF::correctBaro(const sensor_combined_s *msg)
 
 	if (_sensorBaro.shouldCorrect()) {
 		Vector<float, X::n> dx = computeErrorCorrection(_dxe);
+		dx(X::q_nb_0) = 0;
+		dx(X::q_nb_1) = 0;
+		dx(X::q_nb_2) = 0;
+		dx(X::q_nb_3) = 0;
+		dx(X::gyro_bias_bX) = 0;
+		dx(X::gyro_bias_bY) = 0;
+		dx(X::gyro_bias_bZ) = 0;
+		dx(X::pos_N) = 0;
+		dx(X::pos_E) = 0;
+		dx(X::vel_N) = 0;
+		dx(X::vel_E) = 0;
 		incrementX(dx);
 		incrementP(_dP);
 	}

@@ -159,8 +159,8 @@ public:
 	inline bool getPositionXYValid() const
 	{
 		return _origin.xyInitialized()
-		       && ((_P(Xe::pos_N, Xe::pos_N)
-			    + _P(Xe::pos_E, Xe::pos_E)) < 2.0f);
+		       && ((_P(Xe::vel_N, Xe::vel_N)
+			    + _P(Xe::vel_E, Xe::vel_E)) < 2.0f);
 	};
 	inline bool getAltitudeValid() const
 	{

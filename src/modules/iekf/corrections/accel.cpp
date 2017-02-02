@@ -117,6 +117,8 @@ void IEKF::correctAccel(const sensor_combined_s *msg)
 		_dxe(Xe::accel_bias_E) = 0;
 		_dxe(Xe::accel_bias_D) = 0;
 		_dxe(Xe::rot_D) = 0;
+		_dxe(Xe::terrain_asl) = 0;
+		_dxe(Xe::baro_bias) = 0;
 		Vector<float, X::n> dx = computeErrorCorrection(_dxe);
 		incrementX(dx);
 		incrementP(_dP);
