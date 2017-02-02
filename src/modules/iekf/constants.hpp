@@ -512,4 +512,6 @@ const float gyro_saturation_thresh = 720 * deg2radf; // rad/s
 // don't predict if accel norm > than this
 const float accel_saturation_thresh = 3 * g; // m/s^2
 
+const bool pubAglZ = true;
+
 //const float wind_correlation_time = 1000; // s

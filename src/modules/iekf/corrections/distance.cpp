@@ -146,7 +146,6 @@ void IEKF::correctDistance(const distance_sensor_s *msg)
 	}
 
 	if (sensor->shouldCorrect()) {
-		ROS_INFO("correcting lidar");
 		// don't allow attitude correction
 		_dxe(Xe::rot_N) = 0;
 		_dxe(Xe::rot_E) = 0;
@@ -155,9 +154,8 @@ void IEKF::correctDistance(const distance_sensor_s *msg)
 		_dxe(Xe::gyro_bias_E) = 0;
 		_dxe(Xe::gyro_bias_D) = 0;
 		Vector<float, X::n> dx = computeErrorCorrection(_dxe);
+		incrementX(dx);
 		incrementP(_dP);
 
-	} else {
-		ROS_INFO("NOT correcting lidar");
 	}
 }

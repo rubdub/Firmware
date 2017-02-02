@@ -933,9 +933,14 @@ void IEKF::publish()
 		msg.v_z_valid = true; //getVelocityZValid();
 		msg.x = _x(X::pos_N);
 		msg.y = _x(X::pos_E);
-		// TODO should make z pub an option
-		//msg.z = -getAgl(_x);
-		msg.z = -getAltAboveOrigin();
+
+		if (pubAglZ) {
+			msg.z = -getAgl();
+
+		} else {
+			msg.z = -getAltAboveOrigin();
+		}
+
 		msg.delta_xy[0] = 0;
 		msg.delta_xy[1] = 0;
 		msg.delta_z = 0;
@@ -955,6 +960,7 @@ void IEKF::publish()
 		msg.ref_timestamp = _origin.getXYTimestamp();
 		msg.ref_lat = _origin.getLatDeg();
 		msg.ref_lon = _origin.getLonDeg();
+		//msg.ref_alt = _x(X::terrain_asl);
 		msg.ref_alt = _origin.getAlt();
 		msg.dist_bottom = getAgl();
 		msg.dist_bottom_rate = -_x(X::vel_D);
@@ -1011,7 +1017,14 @@ void IEKF::publish()
 		msg.z_vel = _x(X::vel_D);
 		msg.x_pos = _x(X::pos_N);
 		msg.y_pos = _x(X::pos_E);
-		msg.z_pos = -getAltAboveOrigin();
+
+		if (pubAglZ) {
+			msg.z_pos = -getAgl();
+
+		} else {
+			msg.z_pos = -getAltAboveOrigin();
+		}
+
 		msg.airspeed = airspeed;
 		msg.airspeed_valid = true;
 		msg.vel_variance[0] = _P(Xe::vel_N, Xe::vel_N);

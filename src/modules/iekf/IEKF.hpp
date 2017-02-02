@@ -149,7 +149,7 @@ public:
 	inline bool getVelocityXYValid() const
 	{
 		return ((_P(Xe::vel_N, Xe::vel_N)
-			 + _P(Xe::vel_E, Xe::vel_E)) < 2.0f);
+			 + _P(Xe::vel_E, Xe::vel_E)) < 0.2f);
 	};
 	inline bool getVelocityZValid() const
 	{
