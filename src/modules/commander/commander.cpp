@@ -2236,7 +2236,9 @@ int commander_thread_main(int argc, char *argv[])
 					critical_battery_voltage_actions_done = true;
 
 					if (!armed.armed) {
-						mavlink_log_critical(&mavlink_log_pub, "CRITICAL BATTERY, SHUT SYSTEM DOWN");
+						mavlink_log_critical(&mavlink_log_pub, "CRITICAL BATTERY, SHUTTING SYSTEM DOWN");
+						usleep(200000);
+						board_pwr(false);
 
 					} else {
 						if (low_bat_action == 1) {
