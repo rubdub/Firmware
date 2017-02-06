@@ -1169,6 +1169,13 @@ FixedwingAttitudeControl::task_main()
 					/* advertise the attitude rates setpoint */
 					_rate_sp_pub = orb_advertise(_rates_sp_id, &_rates_sp);
 				}
+				
+								//Ruben, forcing manual roll, pitch, and throttle in stabilize. Only Yaw is stabilize for testing differential thrust. 
+				_actuators.control[actuator_controls_s::INDEX_ROLL] = _manual.y * _parameters.man_roll_scale + _parameters.trim_roll;
+				_actuators.control[actuator_controls_s::INDEX_PITCH] = -_manual.x * _parameters.man_pitch_scale +
+						_parameters.trim_pitch;
+				//_actuators.control[actuator_controls_s::INDEX_YAW] = _manual.r * _parameters.man_yaw_scale + _parameters.trim_yaw;
+				_actuators.control[actuator_controls_s::INDEX_THROTTLE] = _manual.z;
 
 			} else {
 				/* manual/direct control */
