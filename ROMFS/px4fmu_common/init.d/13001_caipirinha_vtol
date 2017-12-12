@@ -42,4 +42,5 @@ fi
 
 set MIXER caipirinha_vtol
 
-set PWM_OUT 1234
+set PWM_OUT 12345678
+set PWM_RATE 50

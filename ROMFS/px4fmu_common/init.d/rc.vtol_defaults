@@ -22,4 +22,4 @@ then
 fi
 
 # set environment variables (!= parameters)
-set PWM_RATE 400
+set PWM_RATE 50
