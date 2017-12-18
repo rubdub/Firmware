@@ -44,3 +44,5 @@ set MIXER caipirinha_vtol
 
 set PWM_OUT 12345678
 set PWM_RATE 50
+param set VT_MOT_COUNT 4
+
