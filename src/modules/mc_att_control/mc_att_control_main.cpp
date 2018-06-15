@@ -83,6 +83,17 @@
 #include <uORB/topics/vehicle_status.h>
 #include <uORB/uORB.h>
 
+#include <systemlib/mavlink_log.h>
+#include <px4_log.h>
+#include <px4_config.h>
+#include <px4_tasks.h>
+#include <px4_posix.h>
+#include <poll.h>
+#include <unistd.h>
+
+// static orb_advert_t mavlink_log_pub = nullptr;
+
+
 /**
  * Multicopter attitude control app start / stop handling function
  *
@@ -713,6 +724,10 @@ MulticopterAttitudeControl::vehicle_manual_poll()
 
 	if (updated) {
 		orb_copy(ORB_ID(manual_control_setpoint), _manual_control_sp_sub, &_manual_control_sp);
+		// RD Added this to test if printing the setpoint data was correct.
+		// {
+		// mavlink_and_console_log_info(&mavlink_log_pub, "manualsp_value0 \t%8.4f", (double)_manual_control_sp.aux1);
+		// }
 	}
 }
 

@@ -47,6 +47,14 @@
 #include <systemlib/param/param.h>
 #include <drivers/drv_hrt.h>
 
+#include <px4_log.h>
+#include <px4_config.h>
+#include <px4_tasks.h>
+#include <px4_posix.h>
+#include <systemlib/mavlink_log.h>
+#include <poll.h>
+#include <unistd.h>
+
 class Tailsitter : public VtolType
 {
 
@@ -104,6 +112,21 @@ private:
 	float _thrust_transition_start; // throttle value when we start the front transition
 	float _yaw_transition;	// yaw angle in which transition will take place
 	float _pitch_transition_start;  // pitch angle at the start of transition (tailsitter)
+
+	float aux_value;
+	float prior_aux_value = -0.9f;
+	bool triggerflag = false;
+	hrt_abstime start_transition_time = 0.0f;
+	hrt_abstime current_time = 0.0f;
+
+	//Manual Control setpoint subscription variables
+	int		_manual_control_sp_sub;	/**< manual control setpoint subscription */
+	struct manual_control_setpoint_s	_manual_control_sp;	/**< manual control setpoint */
+	bool updated;
+
+	bool _exit_read = false;
+	
+
 
 
 	/** should this anouncement stay? **/

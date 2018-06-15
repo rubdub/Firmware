@@ -667,6 +667,11 @@ private:
 
 	float 				*_outputs_prev = nullptr;
 
+	bool triggerflag = false;
+	float prior_frame_state = -0.9f;
+	float start_transition_time = 0.0f;
+	float current_time = 0.0f;
+
 	/* do not allow to copy due to ptr data members */
 	MultirotorMixer(const MultirotorMixer &);
 	MultirotorMixer operator=(const MultirotorMixer &);

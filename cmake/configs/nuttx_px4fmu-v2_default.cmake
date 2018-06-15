@@ -30,21 +30,29 @@ set(config_module_list
 	drivers/sf0x
 	drivers/ll40ls
 	drivers/trone
+	# Comment GPS to make space of listener
 	drivers/gps
 	drivers/pwm_out_sim
 	#drivers/hott
 	#drivers/hott/hott_telemetry
 	#drivers/hott/hott_sensors
 	#drivers/blinkm
+
+	#Comment below for listener
 	drivers/airspeed
 	drivers/ets_airspeed
 	drivers/ms4525_airspeed
 	drivers/ms5525_airspeed
 	drivers/sdp3x_airspeed
 	drivers/frsky_telemetry
+	#Comment above for listener
+
 	modules/sensors
 	#drivers/mkblctrl
+
+	#Comment px4flow for listener
 	drivers/px4flow
+	
 	#drivers/oreoled
 	drivers/vmount
 	drivers/pwm_input
@@ -73,7 +81,7 @@ set(config_module_list
 	systemcmds/reboot
 	#systemcmds/sd_bench
 	systemcmds/top
-	#systemcmds/topic_listener
+	# systemcmds/topic_listener
 	systemcmds/ver
 
 	#
@@ -99,6 +107,8 @@ set(config_module_list
 	modules/mavlink
 	modules/gpio_led
 	#modules/uavcan
+
+	#Comment below for listener
 	modules/land_detector
 	modules/camera_feedback
 
@@ -106,10 +116,15 @@ set(config_module_list
 	# Estimation modules
 	#
 	#modules/attitude_estimator_q
-	#modules/position_estimator_inav
+	# modules/position_estimator_inav
 	#modules/local_position_estimator
 	modules/ekf2
 
+	#RD Added
+	#  drivers/irlock
+	#  modules/attitude_estimator_q
+	#  modules/local_position_estimator
+	
 	#
 	# Vehicle Control
 	#

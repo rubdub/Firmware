@@ -74,6 +74,10 @@ quad_plus = [
     [ -90, CCW],
     [   0, CW],
     [ 180, CW],
+    [  90, CCW],
+    [ -90, CCW],
+    [   0, CW],
+    [ 180, CW],
 ]
 
 quad_deadcat = [
@@ -186,6 +190,10 @@ octa_cox_wide = [
 
 # Hinge opens between motors 1 and 3. Hence, motors 2 and 3 are on the left, 4 and 1 on the right in a tailsitter config.
 twin_engine = [
+    [ -90, 0.0],
+    [ 90, 0.0],
+    [ 90, 0.0],
+    [ -90, 0.0],
     [ -90, 0.0],
     [ 90, 0.0],
     [ 90, 0.0],

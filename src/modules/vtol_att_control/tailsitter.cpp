@@ -41,12 +41,50 @@
 
 #include "tailsitter.h"
 #include "vtol_att_control_main.h"
+#include "/home/rubendsa/src/Firmware/src/modules/systemlib/mixer/mixer.h"
+#include <uORB/topics/rc_channels.h>
+#include <uORB/topics/actuator_controls.h>
+#include <uORB/topics/sensor_combined.h>
+#include <px4_log.h>
+#include <px4_config.h>
+#include <px4_tasks.h>
+#include <px4_posix.h>
+#include <systemlib/mavlink_log.h>
+#include <poll.h>
+#include <unistd.h>
+
+
+
+// extern orb_advert_t mavlink_log_pub;
+
+// static orb_advert_t mavlink_log_pub = nullptr;
+// mavlink_log_info(&mavlink_log_pub, "Test");
+
+
+
 
 #define ARSP_YAW_CTRL_DISABLE 7.0f	// airspeed at which we stop controlling yaw during a front transition
 #define THROTTLE_TRANSITION_MAX 0.25f	// maximum added thrust above last value in transition
 #define PITCH_TRANSITION_FRONT_P1 -1.1f	// pitch angle to switch to TRANSITION_P2
 #define PITCH_TRANSITION_FRONT_P2 -1.2f	// pitch angle to switch to FW
 #define PITCH_TRANSITION_BACK -0.25f	// pitch angle to switch to MC
+
+// Mixer::Mixer(ControlCallback control_cb, uintptr_t cb_handle) :
+// 	_next(nullptr),
+// 	_control_cb(control_cb),
+// 	_cb_handle(cb_handle)
+// {
+// }
+
+// float
+// Mixer::get_control(uint8_t group, uint8_t index)
+// {
+// 	float	value;
+
+// 	_control_cb(_cb_handle, group, index, value);
+
+// 	return value;
+// }
 
 Tailsitter::Tailsitter(VtolAttitudeControl *attc) :
 	VtolType(attc),
@@ -406,6 +444,12 @@ void Tailsitter::scale_mc_output()
 				 airspeed);
 	_actuators_mc_in->control[1] = math::constrain(_actuators_mc_in->control[1] * airspeed_scaling * airspeed_scaling,
 				       -1.0f, 1.0f);
+
+////////////////////////////
+
+
+
+////////////////////////////////
 }
 
 void Tailsitter::update_mc_state()
@@ -426,12 +470,15 @@ void Tailsitter::update_fw_state()
 	if (flag_idle_mc) {
 		set_idle_fw();
 		flag_idle_mc = false;
-	}
+	}				
+
 }
 
 /**
 * Write data to actuator output topic.
 */
+
+
 void Tailsitter::fill_actuator_outputs()
 {
 	switch (_vtol_mode) {
@@ -445,19 +492,168 @@ void Tailsitter::fill_actuator_outputs()
 			_actuators_mc_in->control[actuator_controls_s::INDEX_THROTTLE];
 
 		_actuators_out_1->timestamp = _actuators_mc_in->timestamp;
+		///////RD Conditional Geometry for Transformer UAV. 
+		// Delay roll and pitch control between flight states to avoid positive feedback.
+		
+					// _manual_control_sp_sub = orb_subscribe(ORB_ID(manual_control_setpoint));
+		// mavlink_and_console_log_info(&mavlink_log_pub, "1");
 
+
+			/* get pilots inputs */
+			// orb_check(_manual_control_sp_sub, &updated);
+		{
+				// mavlink_and_console_log_info(&mavlink_log_pub, "2");
+
+			// px4_pollfd_struct_t poll_fds = {};
+			// poll_fds.events = POLLIN;
+			// poll_fds.fd = _manual_control_sp_sub;
+
+			// if(_exit_read == false){
+				// mavlink_and_console_log_info(&mavlink_log_pub, "3");
+
+				// int pret = px4_poll(&poll_fds, 1, 50);
+				// if (pret == 0) {
+				// 	continue;
+				// }
+				// if (pret < 0) {
+				// 	warn("mc att ctrl: poll error %d, %d", pret, errno);
+				// 	/* sleep a bit before next try */
+				// 	usleep(100000);
+				// 	continue;
+				// }
+				// if (px4_poll(&poll_fds, 1, 5000) == true){
+				// if (poll_fds.revents & POLLIN) {
+				// 	orb_copy(ORB_ID(manual_control_setpoint), _manual_control_sp_sub, &_manual_control_sp);
+				// 	mavlink_and_console_log_info(&mavlink_log_pub, "manualsp_value0 \t%8.4f", (double)_manual_control_sp.aux1);
+				// // }
+				// _exit_read = true;
+			// }
+			// _exit_read = false;
+		}
+		
+		
+		
+			// int rc_sub_fd = orb_subscribe(ORB_ID(rc_channels));
+			// orb_set_interval(rc_sub_fd, 200);
+			// px4_pollfd_struct_t fds[] = {
+      		// 	{ .fd = rc_sub_fd,   .events = POLLIN },
+    		// 	};
+		
+			// if (fds[0].revents & POLLIN) {
+            //     /* obtained data for the first file descriptor */
+			// 	struct rc_channels_s rc_raw;
+            //     /* copy sensors raw data into local buffer */
+            //     orb_copy(ORB_ID(rc_channels), rc_sub_fd, &rc_raw);
+			// }
+
+			// bool updated;
+			// struct rc_channels_s rc_raw;
+			// int rc_sub_fd = orb_subscribe(ORB_ID(rc_channels));
+
+			// orb_set_interval(rc_sub_fd, 1000);
+
+	
+
+			// px4_pollfd_struct_t poll_fds = {};
+			// poll_fds.events = POLLIN;
+			// poll_fds.fd = rc_raw.channels[3];
+
+			// px4_poll(&poll_fds, 1, 100);
+
+			// // int poll_ret = px4_poll(poll_fds, 1, 1000);
+
+			// if(poll_fds.revents & POLLIN){
+			// 	// orb_copy(ORB_ID(rc_channels), rc_sub_fd, &rc_raw);
+			// 	// mavlink_and_console_log_info(&mavlink_log_pub, "aux_value %.2f", (double)rc_raw.channels[3]);
+			// 	// orb_check(rc_sub_fd, &updated);
+			// 	// if (updated){
+			// 		orb_copy(ORB_ID(rc_channels), rc_sub_fd, &rc_raw);
+			// 		mavlink_and_console_log_info(&mavlink_log_pub, "aux_value %.2f", (double)rc_raw.channels[3]);
+
+			// 	// }
+			// }
+
+			// int setpoint_sub_fd = orb_subscribe(ORB_ID(manual_control_setpoint));
+			// struct manual_control_setpoint_s setpoint_raw;
+			// // orb_copy(ORB_ID(manual_control_setpoint), setpoint_sub_fd, &setpoint_raw);
+			// mavlink_and_console_log_info(&mavlink_log_pub, "manualsp_value0 \t%8.4f", (double)setpoint_raw.aux1);
+			
+
+			
+
+
+
+
+
+			// // orb_copy(ORB_ID(rc_channels), rc_sub_fd, &rc_raw);
+			// aux_value = (float)rc_raw.channels[0];
+			
+			// int actuator_sub_fd = orb_subscribe(ORB_ID(actuator_controls));
+			// struct actuator_controls_s actuator_raw;
+			// orb_copy(ORB_ID(actuator_controls), actuator_sub_fd, &actuator_raw);
+			// aux_value= (float)actuator_raw.control[6];
+
+			// aux_value= _actuators_mc_in->control[actuator_controls_s::INDEX_AIRBRAKES];
+
+			// aux_value= _actuators_out_0->control[actuator_controls_s::INDEX_SPOILERS];
+			// mavlink_and_console_log_info(&mavlink_log_pub, "manualsp_value0 \t%8.4f", (double)aux_value);
+
+						
+			// printing the position data into the terminal
+			// PX4_INFO("auxvalue, %f", (double)aux_value);
+			// mavlink_and_console_log_info(&mavlink_log_pub, "aux_value0 %.2f", (double)rc_raw.channels[0]);
+			// mavlink_and_console_log_info(&mavlink_log_pub, "aux_value1 %.2f", (double)rc_raw.channels[1]);
+			// mavlink_and_console_log_info(&mavlink_log_pub, "aux_value2 %.2f", (double)rc_raw.channels[2]);
+			// mavlink_and_console_log_info(&mavlink_log_pub, "aux_value3 %.2f", (double)rc_raw.channels[3]);
+			// mavlink_and_console_log_info(&mavlink_log_pub, "aux_value4 %.2f", (double)rc_raw.channels[4]);
+			// mavlink_and_console_log_info(&mavlink_log_pub, "aux_value5 %.2f", (double)rc_raw.channels[5]);
+			// mavlink_and_console_log_info(&mavlink_log_pub, "aux_value6 %d", (double)rc_raw.channels[6]);
+			// mavlink_and_console_log_info(&mavlink_log_pub, "aux_value7 %.2f", (double)rc_raw.channels[7]);
+			
+			// int rc_sub_fd = orb_subscribe(ORB_ID(rc_channels));
+			// struct rc_channels_s rc_raw;
+			// orb_copy(ORB_ID(rc_channels), rc_sub_fd, &rc_raw);
+			// aux_value = (float)rc_raw.channels[6];
+
+			// if (fabsf(aux_value-prior_aux_value) >= 0.2f && triggerflag == false){
+			// if (aux_value >= 1200.0f && triggerflag == false){
+				/////////////////////////////////
+			// if (aux_value >= 0.3f){
+
+			// 	prior_aux_value = aux_value;
+			// 	start_transition_time = hrt_absolute_time();
+			// 	triggerflag = true;
+
+			// if (triggerflag == true){
+			// 	_actuators_out_0->control[actuator_controls_s::INDEX_ROLL] = 0.0f;
+			// 	_actuators_out_0->control[actuator_controls_s::INDEX_PITCH] = 0.0f;
+			// 	_actuators_out_0->control[actuator_controls_s::INDEX_YAW] = 0.0f;
+			// 	}
+			// }
+
+
+
+			// current_time = hrt_absolute_time();
+
+			// if (triggerflag == true && (current_time - start_transition_time) > 2000000.0f){
+			// 	triggerflag = false;
+			// }
+		
+		
+		
+		//// End of roll/pitch control conditionals.
+		
 		if (_params->elevons_mc_lock == 1) {
 			_actuators_out_1->control[0] = 0;
 			_actuators_out_1->control[1] = 0;
 
 		} else {
 			// NOTE: There is no mistake in the line below, multicopter yaw axis is controlled by elevon roll actuation!
-			_actuators_out_1->control[actuator_controls_s::INDEX_ROLL] =
-				_actuators_mc_in->control[actuator_controls_s::INDEX_YAW];	//roll elevon
-			_actuators_out_1->control[actuator_controls_s::INDEX_PITCH] =
-				_actuators_mc_in->control[actuator_controls_s::INDEX_PITCH];	//pitch elevon
+			_actuators_out_1->control[actuator_controls_s::INDEX_ROLL] = _actuators_mc_in->control[actuator_controls_s::INDEX_YAW];	//roll elevon
+            _actuators_out_1->control[actuator_controls_s::INDEX_ROLL] = 0.1f * _actuators_out_1->control[actuator_controls_s::INDEX_ROLL];
+			
+            _actuators_out_1->control[actuator_controls_s::INDEX_PITCH] = 2.0f * _actuators_mc_in->control[actuator_controls_s::INDEX_PITCH];	//pitch elevon
 		}
-
 		break;
 
 	case FIXED_WING:

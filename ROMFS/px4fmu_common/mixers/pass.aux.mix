@@ -1,15 +1,40 @@
 # Manual pass through mixer for servo outputs 1-4
 
+####################MiniQ Gen1
 # AUX1 channel (select RC channel with RC_MAP_AUX1 param)
-M: 0
-O:      10000  10000      -10000 -10000  -10000
+#M: 1
+#O:      10000  10000      0 -10000  10000
+#S: 3 5  10000  10000      0 -10000  10000
+
 
 # AUX2 channel (select RC channel with RC_MAP_AUX2 param)
-M: 0
-O:      10000  10000      -10000 -10000  -10000
+#M: 1
+#O:      10000  10000      0 -10000  10000
+#S: 3 5  10000  10000      0 -10000  10000
+
 
 # AUX3 channel (select RC channel with RC_MAP_AUX3 param)
-M: 0
-O:      10000  10000      -10000 -10000  -10000
+#M: 1
+#O:      10000  10000      0 -10000  10000
+#S: 3 5  10000  10000      0 -10000  10000
+
+
+#####################MiniQ Gen3 (servos are flipped around so opposite mapping from Gen1)
+# AUX1 channel (select RC channel with RC_MAP_AUX1 param)
+M: 1
+O:      10000  10000      0 10000  -10000
+S: 3 5  10000  10000      0 -10000  10000
+
+
+# AUX2 channel (select RC channel with RC_MAP_AUX2 param)
+M: 1
+O:      10000  10000      0 10000  -10000
+S: 3 5  10000  10000      0 -10000  10000
+
+
+# AUX3 channel (select RC channel with RC_MAP_AUX3 param)
+M: 1
+O:      10000  10000      0 10000  -10000
+S: 3 5  10000  10000      0 -10000  10000
 
 

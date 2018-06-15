@@ -54,6 +54,8 @@
 
 #include "mixer.h"
 
+#include "../../../../build_px4fmu-v2_default/src/modules/uORB/topics/rc_channels.h"
+
 #define debug(fmt, args...)	do { } while(0)
 //#define debug(fmt, args...)	do { printf("[mixer] " fmt "\n", ##args); } while(0)
 
@@ -141,6 +143,7 @@ SimpleMixer::parse_control_scaler(const char *buf, unsigned &buflen, mixer_scale
 		return -1;
 	}
 
+//    Could introduce the conditional here. if(trans_sw){control_group = 2} else control_group = 3 ()
 	control_group		= u[0];
 	control_index		= u[1];
 	scaler.negative_scale	= s[0] / 10000.0f;
@@ -192,7 +195,7 @@ SimpleMixer::from_text(Mixer::ControlCallback control_cb, uintptr_t cb_handle, c
 		debug("simple mixer parser failed parsing out scaler tag, ret: '%s'", buf);
 		goto out;
 	}
-
+// Could possibly hard code the mixer inputs here.
 	for (unsigned i = 0; i < inputs; i++) {
 		if (parse_control_scaler(end - buflen, buflen,
 					 mixinfo->controls[i].scaler,
