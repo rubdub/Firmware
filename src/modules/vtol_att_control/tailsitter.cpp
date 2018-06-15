@@ -41,7 +41,6 @@
 
 #include "tailsitter.h"
 #include "vtol_att_control_main.h"
-#include "/home/rubendsa/src/Firmware/src/modules/systemlib/mixer/mixer.h"
 #include <uORB/topics/rc_channels.h>
 #include <uORB/topics/actuator_controls.h>
 #include <uORB/topics/sensor_combined.h>

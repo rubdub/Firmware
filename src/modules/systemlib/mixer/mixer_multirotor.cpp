@@ -134,7 +134,6 @@
 #include <uORB/topics/vehicle_control_mode.h>
 #include <uORB/topics/vehicle_rates_setpoint.h>
 #include <uORB/topics/vehicle_status.h>
-#include "/home/rubendsa/src/Firmware/src/modules/uORB/uORB.h"
 
 
 
