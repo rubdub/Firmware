@@ -437,31 +437,26 @@ MultirotorMixer::mix(float *outputs, unsigned space, uint16_t *status_reg)
 		}
 	}
 
-	// if (fabsf(frame_state-prior_frame_state) >= 0.2f && triggerflag == false){
-		if (fabsf(frame_state-prior_frame_state) >= 0.2f && triggerflag == false){
-			prior_frame_state = frame_state;
-			start_transition_time = hrt_absolute_time();
-			triggerflag = true;
-		}
+/////////////////////////////Begin throttle Lock/////////////////////////////////// 
+	if (fabsf(frame_state-prior_frame_state) >= 0.2f && triggerflag == false){
+		prior_frame_state = frame_state;
+		start_transition_time = hrt_absolute_time();
+		triggerflag = true;
+	}
 
-		if (triggerflag == true){
-			roll = 0.0f;
-			pitch = 0.0f;
-			yaw = 0.0f;
-		}		
-		
-		current_time = hrt_absolute_time();
-		
-		//////Loop for 2 second delay locking roll, pitch, yaw
-		// if (triggerflag == true && (current_time - start_transition_time) > 2000000.0f){	
-		// 	triggerflag = false;
-		// }
-		
-		//Transformation ROLL, PITCH, YAW LOCK Delay in us (750000 = .75seconds)
-		if (triggerflag == true && (current_time - start_transition_time) > 500000.0f){	
-			triggerflag = false;
-		}
-		
+	if (triggerflag == true){
+		roll = 0.0f;
+		pitch = 0.0f;
+		yaw = 0.0f;
+	}		
+	
+	current_time = hrt_absolute_time();
+	
+	//Transformation ROLL, PITCH, YAW LOCK Delay in us (750000 = .75seconds)
+	if (triggerflag == true && (current_time - start_transition_time) > 500000.0f){	
+		triggerflag = false;
+	}
+//////////////////////////////End Throttle Lock///////////////////////////////////
 
 	else{}
 
@@ -603,6 +598,16 @@ MultirotorMixer::mix(float *outputs, unsigned space, uint16_t *status_reg)
 			outputs[i] = -(1.0f - _thrust_factor) / (2.0f * _thrust_factor) + sqrtf((1.0f - _thrust_factor) *
 					(1.0f - _thrust_factor) / (4.0f * _thrust_factor * _thrust_factor) + (outputs[i] < 0.0f ? 0.0f : outputs[i] /
 							_thrust_factor));
+		}
+
+		/*
+			Motor 1 and 3 pulse to counter pitching down moment when opening up (frame_state == fixed_wing)
+			and not when closing together. 
+		*/
+
+		if (triggerflag == true){
+			outputs[0] = outputs[0] + 0.45f;
+			outputs[2] = outputs[2] + 0.45f;
 		}
 
 		outputs[i] = math::constrain(_idle_speed + (outputs[i] * (1.0f - _idle_speed)), _idle_speed, 1.0f);
