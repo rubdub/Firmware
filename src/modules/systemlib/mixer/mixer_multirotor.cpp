@@ -416,10 +416,10 @@ MultirotorMixer::mix(float *outputs, unsigned space, uint16_t *status_reg)
     };
 
     const Rotor config_twin_engine[] = {
-            {  1.000000,  0.000000,  0.000000,  1.000000 },
-            { -1.000000,  0.000000,  0.000000,  1.000000 },
             { -1.000000,  0.000000,  0.000000,  1.000000 },
             {  1.000000,  0.000000,  0.000000,  1.000000 },
+            {  1.000000,  0.000000,  0.000000,  1.000000 },
+            { -1.000000,  0.000000,  0.000000,  1.000000 },
             {  0.000000,  0.000000, -0.000000,  0.000000 },
             {  0.000000,  0.000000, -0.000000,  0.000000 },
             { -0.000000,  0.000000, -0.000000,  0.000000 },
@@ -606,8 +606,8 @@ MultirotorMixer::mix(float *outputs, unsigned space, uint16_t *status_reg)
 		*/
 
 		if (triggerflag == true){
-			outputs[0] = outputs[0] + 0.45f;
-			outputs[2] = outputs[2] + 0.45f;
+			outputs[0] = outputs[0] + 0.25f;
+			outputs[2] = outputs[2] + 0.25f;
 		}
 
 		outputs[i] = math::constrain(_idle_speed + (outputs[i] * (1.0f - _idle_speed)), _idle_speed, 1.0f);
@@ -660,10 +660,10 @@ MultirotorMixer::mix(float *outputs, unsigned space, uint16_t *status_reg)
 
     if (frame_state >= 0.1f){
     // Quad-Rotor State
-        outputs[4] = -0.1f;
-        outputs[5] = -0.1f;
-        outputs[6] = -0.1f;
-        outputs[7] = -0.1f;
+        outputs[4] = -0.3f;
+        outputs[5] = -0.3f;
+        outputs[6] = -0.3f;
+        outputs[7] = -0.3f;
 
 		// Used for setting a 1500us for gluing controlsurface horns 
 		// outputs[4] = -0.0f;
