@@ -603,11 +603,13 @@ MultirotorMixer::mix(float *outputs, unsigned space, uint16_t *status_reg)
 		/*
 			Motor 1 and 3 pulse to counter pitching down moment when opening up (frame_state == fixed_wing)
 			and not when closing together. 
+
+			7/17/18 - +.25 for the NomQ is wayyyy too high, resulted in flipping the craft during transformation
 		*/
 
 		if (triggerflag == true){
-			outputs[0] = outputs[0] + 0.25f;
-			outputs[2] = outputs[2] + 0.25f;
+			outputs[0] = outputs[0] + 0.05f;
+			outputs[2] = outputs[2] + 0.05f;
 		}
 
 		outputs[i] = math::constrain(_idle_speed + (outputs[i] * (1.0f - _idle_speed)), _idle_speed, 1.0f);
