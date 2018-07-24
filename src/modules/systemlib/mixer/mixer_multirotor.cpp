@@ -607,10 +607,7 @@ MultirotorMixer::mix(float *outputs, unsigned space, uint16_t *status_reg)
 			7/17/18 - +.25 for the NomQ is wayyyy too high, resulted in flipping the craft during transformation
 		*/
 
-		if (triggerflag == true){
-			outputs[0] = outputs[0] + 0.05f;
-			outputs[2] = outputs[2] + 0.05f;
-		}
+
 
 		outputs[i] = math::constrain(_idle_speed + (outputs[i] * (1.0f - _idle_speed)), _idle_speed, 1.0f);
 
@@ -682,6 +679,18 @@ MultirotorMixer::mix(float *outputs, unsigned space, uint16_t *status_reg)
 //        outputs[7] = 1.0f;
 
     }
+
+		if (triggerflag == true){
+			// outputs[0] = outputs[0] + 0.05f;
+			// outputs[2] = outputs[2] + 0.05f;
+			// outputs[0] = outputs[0] + 0.1f;
+			// outputs[2] = outputs[2] + 0.1f;
+			outputs[0] = outputs[0];
+			outputs[2] = outputs[2];
+			
+			outputs[1] = outputs[1];
+			outputs[3] = outputs[3];
+		}
 
 
     return _rotor_count;
