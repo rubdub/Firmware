@@ -69,8 +69,8 @@
 #include <math.h>
 
 #include <uORB/uORB.h>
-#include "../../../../build_px4fmu-v2_default/src/modules/uORB/topics/sensor_combined.h"
-#include "../../../../build_px4fmu-v2_default/src/modules/uORB/topics/vehicle_attitude.h"
+// #include "../../../../build_px4fmu-v2_default/src/modules/uORB/topics/sensor_combined.h"
+// #include "../../../../build_px4fmu-v2_default/src/modules/uORB/topics/vehicle_attitude.h"
 
 // start of copy
 #include <px4_config.h>
@@ -90,7 +90,7 @@
 #include <uORB/topics/actuator_controls.h>
 #include <uORB/topics/battery_status.h>
 #include <uORB/topics/control_state.h>
-#include "../../../../build_px4fmu-v2_default/src/modules/uORB/topics/manual_control_setpoint.h"
+// #include "../../../../build_px4fmu-v2_default/src/modules/uORB/topics/manual_control_setpoint.h"
 #include <uORB/topics/parameter_update.h>
 #include <uORB/topics/vehicle_attitude_setpoint.h>
 #include <uORB/topics/vehicle_control_mode.h>
@@ -124,7 +124,7 @@
 #include <uORB/topics/actuator_controls.h>
 #include <uORB/topics/battery_status.h>
 #include <uORB/topics/control_state.h>
-#include "../../../build_px4fmu-v2_default/src/modules/uORB/topics/manual_control_setpoint.h"
+// #include "../../../build_px4fmu-v2_default/src/modules/uORB/topics/manual_control_setpoint.h"
 #include <uORB/topics/mc_att_ctrl_status.h>
 #include <uORB/topics/multirotor_motor_limits.h>
 #include <uORB/topics/parameter_update.h>
@@ -415,15 +415,37 @@ MultirotorMixer::mix(float *outputs, unsigned space, uint16_t *status_reg)
             { -0.000000, -0.000000, -0.000000,  1.000000 },
     };
 
-    const Rotor config_twin_engine[] = {
-            { -1.000000,  0.000000,  0.000000,  1.000000 },
-            {  1.000000,  0.000000,  0.000000,  1.000000 },
-            {  1.000000,  0.000000,  0.000000,  1.000000 },
-            { -1.000000,  0.000000,  0.000000,  1.000000 },
-            {  0.000000,  0.000000, -0.000000,  0.000000 },
-            {  0.000000,  0.000000, -0.000000,  0.000000 },
-            { -0.000000,  0.000000, -0.000000,  0.000000 },
-            { -0.000000, -0.000000, -0.000000,  0.000000 },
+    // const Rotor quad_plus[] = {
+	// 		{ -0.707107,  0.707107,  1.000000,  1.000000 },
+	// 		{  0.707107, -0.707107,  1.000000,  1.000000 },
+	// 		{  0.707107,  0.707107, -1.000000,  1.000000 },
+	// 		{ -0.707107, -0.707107, -1.000000,  1.000000 },
+    //         { -0.000000, -0.000000, -0.000000,  1.000000 },
+    //         { -0.000000, -0.000000, -0.000000,  1.000000 },
+    //         { -0.000000, -0.000000, -0.000000,  1.000000 },
+    //         { -0.000000, -0.000000, -0.000000,  1.000000 },
+    // };
+
+    // const Rotor config_twin_engine[] = {
+    //         { -1.000000,  0.000000,  0.000000,  1.000000 },
+    //         {  1.000000,  0.000000,  0.000000,  1.000000 },
+    //         {  1.000000,  0.000000,  0.000000,  1.000000 },
+    //         { -1.000000,  0.000000,  0.000000,  1.000000 },
+    //         {  0.000000,  0.000000, -0.000000,  0.000000 },
+    //         {  0.000000,  0.000000, -0.000000,  0.000000 },
+    //         { -0.000000,  0.000000, -0.000000,  0.000000 },
+    //         { -0.000000, -0.000000, -0.000000,  0.000000 },
+    // };
+
+	    const Rotor config_twin_engine[] = {
+            { -1.000000,  0.000000,  1.000000,  1.000000 },
+            {  1.000000,  0.000000,  1.000000,  1.000000 },
+            {  0.000000,  1.000000, -1.000000,  1.000000 },
+            { -0.000000, -1.000000, -1.000000,  1.000000 },
+            { -0.000000, -0.000000, -0.000000,  1.000000 },
+            { -0.000000, -0.000000, -0.000000,  1.000000 },
+            { -0.000000, -0.000000, -0.000000,  1.000000 },
+            { -0.000000, -0.000000, -0.000000,  1.000000 },
     };
 
 	if (enable_transformation == true){

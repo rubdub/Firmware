@@ -54,7 +54,7 @@
 
 #include "mixer.h"
 
-#include "../../../../build_px4fmu-v2_default/src/modules/uORB/topics/rc_channels.h"
+// #include "../../../../build_px4fmu-v2_default/src/modules/uORB/topics/rc_channels.h"
 
 #define debug(fmt, args...)	do { } while(0)
 //#define debug(fmt, args...)	do { printf("[mixer] " fmt "\n", ##args); } while(0)

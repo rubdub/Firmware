@@ -19,8 +19,10 @@ then
 fi
 
 set MIXER quad_x_vtol
+#set MIXER caipirinha_vtol
 
-set PWM_OUT 1234
+# set PWM_OUT 1234
+set PWM_OUT 12345678
 set PWM_MAX 2000
 set PWM_RATE 400
 set MAV_TYPE 20
