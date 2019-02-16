@@ -125,6 +125,7 @@ set(msg_file_names
 	vehicle_status_flags.msg
 	vtol_vehicle_status.msg
 	wind_estimate.msg
+	custom_msg.msg
 	)
 
 # Get absolute paths
