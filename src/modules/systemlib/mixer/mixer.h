@@ -135,6 +135,10 @@
 
 #include "mixer_load.h"
 
+#include <poll.h>
+#include <uORB/topics/custom_msg.h>
+#include <uORB/uORB.h>
+#include <px4_posix.h>
 /**
  * Abstract class defining a mixer mixing zero or more inputs to
  * one or more outputs.
@@ -551,6 +555,10 @@ public:
 
 	 * Precalculated rotor mix.
 	 */
+
+	int custom_sub;	
+	px4_pollfd_struct_t* fds = new px4_pollfd_struct_t[1];
+
 	struct Rotor {
 		float	roll_scale;	/**< scales roll for this rotor */
 		float	pitch_scale;	/**< scales pitch for this rotor */

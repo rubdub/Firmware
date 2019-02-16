@@ -77,6 +77,7 @@
 #include <uORB/topics/gps_inject_data.h>
 #include <uORB/topics/control_state.h>
 #include <uORB/topics/collision_report.h>
+#include <uORB/topics/custom_msg.h>
 
 
 #include "mavlink_mission.h"

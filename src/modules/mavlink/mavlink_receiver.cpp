@@ -84,6 +84,7 @@
 #include <geo/geo.h>
 
 #include <uORB/topics/vehicle_command_ack.h>
+#include <uORB/topics/custom_msg.h>
 
 #include "mavlink_bridge_header.h"
 #include "mavlink_receiver.h"
@@ -1045,6 +1046,32 @@ MavlinkReceiver::handle_message_set_actuator_control_target(mavlink_message_t *m
 	struct offboard_control_mode_s offboard_control_mode = {};
 
 	struct actuator_controls_s actuator_controls = {};
+
+
+	//ADDED start
+	//PX4_WARN("Received Actuator Control in MavLRecCpp");
+	struct custom_msg_s f; //struct custom_msg_s f;
+    memset(&f, 0, sizeof(f));
+    f.timestamp = hrt_absolute_time();
+    f.m0 = set_actuator_control_target.controls[0];
+    f.m1 = set_actuator_control_target.controls[1];
+    f.m2 = set_actuator_control_target.controls[2];
+    f.m3 = set_actuator_control_target.controls[3];
+	/*
+    if (_custom_msg_pub == nullptr) {
+       _custom_msg_pub = orb_advertise(ORB_ID(custom_msg), &f);
+
+    } else {
+        orb_publish(ORB_ID(custom_msg), _custom_msg_pub, &f);
+    }
+	*/
+
+	//remove these 2 lines...
+	orb_advert_t _custom_msg_pub = orb_advertise(ORB_ID(custom_msg), &f);
+	orb_publish(ORB_ID(custom_msg), _custom_msg_pub, &f);
+
+
+	//ADDED end
 
 	bool values_finite =
 		PX4_ISFINITE(set_actuator_control_target.controls[0]) &&

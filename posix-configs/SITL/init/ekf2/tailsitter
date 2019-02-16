@@ -40,7 +40,7 @@ param set SYS_MC_EST_GROUP 2
 param set SYS_RESTART_TYPE 2
 param set VT_TYPE 0
 
-param set COM_RC_IN_MODE 1
+param set COM_RC_IN_MODE 2
 
 replay tryapplyparams
 simulator start -s
