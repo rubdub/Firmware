@@ -179,8 +179,9 @@ void Tailsitter::update_vtol_state()
 			break;
 
 		case FW_MODE:
-			_vtol_schedule.flight_mode 	= TRANSITION_BACK;
-			_vtol_schedule.transition_start = hrt_absolute_time();
+			// _vtol_schedule.flight_mode 	= TRANSITION_BACK;
+			// _vtol_schedule.transition_start = hrt_absolute_time();
+			_vtol_schedule.flight_mode = MC_MODE;
 			break;
 
 		case TRANSITION_FRONT_P1:
@@ -197,9 +198,10 @@ void Tailsitter::update_vtol_state()
 		case TRANSITION_BACK:
 
 			// check if we have reached pitch angle to switch to MC mode
-			if (pitch >= PITCH_TRANSITION_BACK) {
-				_vtol_schedule.flight_mode = MC_MODE;
-			}
+			// if (pitch >= PITCH_TRANSITION_BACK) {
+			// 	_vtol_schedule.flight_mode = MC_MODE;
+			// }
+			_vtol_schedule.flight_mode = MC_MODE;
 
 			break;
 		}
