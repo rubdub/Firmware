@@ -1057,6 +1057,10 @@ MavlinkReceiver::handle_message_set_actuator_control_target(mavlink_message_t *m
     f.m1 = set_actuator_control_target.controls[1];
     f.m2 = set_actuator_control_target.controls[2];
     f.m3 = set_actuator_control_target.controls[3];
+    f.m4 = set_actuator_control_target.controls[4];
+    f.m5 = set_actuator_control_target.controls[5];
+    f.m6 = set_actuator_control_target.controls[6];
+    f.m7 = set_actuator_control_target.controls[7];
 	/*
     if (_custom_msg_pub == nullptr) {
        _custom_msg_pub = orb_advertise(ORB_ID(custom_msg), &f);
