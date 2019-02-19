@@ -422,7 +422,7 @@ MultirotorMixer::mix(float *outputs, unsigned space, uint16_t *status_reg)
 
     //--------------------RD, Start of conditional geometry
 	bool enable_transformation = true;
-    float       frame_state = math::constrain(get_control(3, 5), -1.0f, 1.0f);
+    // float       frame_state = math::constrain(get_control(3, 5), -1.0f, 1.0f);
 //    float       elevon_state = math::constrain(get_control(3, 6), -1.0f, 1.0f);
 
     const Rotor quad_plus[] = {
@@ -471,12 +471,12 @@ MultirotorMixer::mix(float *outputs, unsigned space, uint16_t *status_reg)
 
 	if (enable_transformation == true){
 		if (frame_state >= 0.1f){
-			// _rotor_count = 8;
+			_rotor_count = 8;
 			_rotors = quad_plus;
 			
 		}
 		else {
-			// _rotor_count = 6;
+			_rotor_count = 5;
 			_rotors = config_twin_engine;
 		}
 		PX4_ERR("_rotor_count: %d", _rotor_count);
@@ -801,12 +801,12 @@ MultirotorMixer::mix(float *outputs, unsigned space, uint16_t *status_reg)
 		    outputs[7] = (double)raw.m7;
 
 			if ((double)outputs[4] >= .1){
-				_rotor_count = 6;
-				// frame_state = 1.0f;
+				// _rotor_count = 6;
+				frame_state = -1.0f;
 			}
 			else
-				// frame_state = -1.0f;
-				_rotor_count = 8;
+				frame_state = 1.0f;
+				// _rotor_count = 8;
 
 		// 			PX4_ERR("frame_state: %d", (double)frame_state);
 		// PX4_ERR("outputs[4]: %d", (double)outputs[4]);

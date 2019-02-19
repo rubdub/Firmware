@@ -612,6 +612,8 @@ public:
 			const char *buf,
 			unsigned &buflen);
 
+	float frame_state;
+
 	virtual unsigned		mix(float *outputs, unsigned space, uint16_t *status_reg);
 	virtual uint16_t		get_saturation_status(void);
 	virtual void			groups_required(uint32_t &groups);
