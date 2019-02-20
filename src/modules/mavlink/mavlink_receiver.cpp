@@ -1048,7 +1048,7 @@ MavlinkReceiver::handle_message_set_actuator_control_target(mavlink_message_t *m
 	struct actuator_controls_s actuator_controls = {};
 
 
-	//ADDED start
+	///////////////////////////////////////ADDED start
 	//PX4_WARN("Received Actuator Control in MavLRecCpp");
 	struct custom_msg_s f; //struct custom_msg_s f;
     memset(&f, 0, sizeof(f));
@@ -1075,7 +1075,7 @@ MavlinkReceiver::handle_message_set_actuator_control_target(mavlink_message_t *m
 	orb_publish(ORB_ID(custom_msg), _custom_msg_pub, &f);
 
 
-	//ADDED end
+	/////////////////////////////////ADDED end
 
 	bool values_finite =
 		PX4_ISFINITE(set_actuator_control_target.controls[0]) &&

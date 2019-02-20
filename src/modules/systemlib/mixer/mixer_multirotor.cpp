@@ -424,6 +424,7 @@ MultirotorMixer::mix(float *outputs, unsigned space, uint16_t *status_reg)
 	bool enable_transformation = true;
     // float       frame_state = math::constrain(get_control(3, 5), -1.0f, 1.0f);
 //    float       elevon_state = math::constrain(get_control(3, 6), -1.0f, 1.0f);
+	frame_state = 1.0f;
 
     const Rotor quad_plus[] = {
             { -1.000000,  0.000000,  1.000000,  1.000000 },
@@ -479,7 +480,7 @@ MultirotorMixer::mix(float *outputs, unsigned space, uint16_t *status_reg)
 			_rotor_count = 5;
 			_rotors = config_twin_engine;
 		}
-		PX4_ERR("_rotor_count: %d", _rotor_count);
+		// PX4_ERR("_rotor_count: %d", _rotor_count);
 
 	}
 
@@ -748,8 +749,9 @@ MultirotorMixer::mix(float *outputs, unsigned space, uint16_t *status_reg)
 //////////////////////Subscribe to ROS node on all 8 actuator channels
 
 	int error_counter = 0;
-	    // wait for sensor update of 1 file descriptor for 1000 ms (1 second)
-	    int poll_ret = px4_poll(fds, 1, 1000);
+	    // wait for sensor update of 1 file descriptor for 1000 ms (1 second) -> changed to 1 for 1ms
+		//int poll_ret = px4_poll(fds, 1, 1000);
+		int poll_ret = px4_poll(fds, 1, 1);
 
 	    // handle the poll result
 	    if (poll_ret == 0)
@@ -791,10 +793,18 @@ MultirotorMixer::mix(float *outputs, unsigned space, uint16_t *status_reg)
 		    //      (double)raw.m3);
 			
 
-		    outputs[0] = (double)raw.m0;
-		    outputs[1] = (double)raw.m1;
-		    outputs[2] = (double)raw.m2;
-		    outputs[3] = (double)raw.m3;
+		    // outputs[0] = (double)raw.m0;
+		    // outputs[1] = (double)raw.m1;
+		    // outputs[2] = (double)raw.m2;
+		    // outputs[3] = (double)raw.m3;
+
+
+		    // outputs[0] = outputs[0];
+		    // outputs[1] = outputs[1];
+		    // outputs[2] = outputs[2];
+		    // outputs[3] = outputs[3];
+
+			
 		    outputs[4] = (double)raw.m4;
 		    outputs[5] = (double)raw.m5;
 		    outputs[6] = (double)raw.m6;
@@ -818,15 +828,15 @@ MultirotorMixer::mix(float *outputs, unsigned space, uint16_t *status_reg)
 			// 	frame_state = -.9f;
 
 			// PX4_ERR("frame_state: %d", (float));
-					    PX4_INFO("Motor Values:\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8.4f",
-		         (double)outputs[0],
-		         (double)outputs[1],
-		         (double)outputs[2],
-		         (double)outputs[3],
-				 (double)outputs[4],
-		         (double)outputs[5],
-		         (double)outputs[6],
-		         (double)outputs[7]);
+				// 	    PX4_INFO("Motor Values:\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8.4f",
+		        //  (double)outputs[0],
+		        //  (double)outputs[1],
+		        //  (double)outputs[2],
+		        //  (double)outputs[3],
+				//  (double)outputs[4],
+		        //  (double)outputs[5],
+		        //  (double)outputs[6],
+		        //  (double)outputs[7]);
 		}
 	    }
 
