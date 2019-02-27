@@ -436,17 +436,7 @@ MultirotorMixer::mix(float *outputs, unsigned space, uint16_t *status_reg)
             { -0.000000, -0.000000, -0.000000,  1.000000 },
     };
 
-    // const Rotor quad_plus[] = {
-	// 		{ -0.707107,  0.707107,  1.000000,  1.000000 },
-	// 		{  0.707107, -0.707107,  1.000000,  1.000000 },
-	// 		{  0.707107,  0.707107, -1.000000,  1.000000 },
-	// 		{ -0.707107, -0.707107, -1.000000,  1.000000 },
-    //         { -0.000000, -0.000000, -0.000000,  1.000000 },
-    //         { -0.000000, -0.000000, -0.000000,  1.000000 },
-    //         { -0.000000, -0.000000, -0.000000,  1.000000 },
-    //         { -0.000000, -0.000000, -0.000000,  1.000000 },
-    // };
-
+///////////////////// TAIL SITTER CONTROLLER USED FOR PHYSICAL PROTOTYPES!!!!!! CHECK THE SIGNS!!!
     // const Rotor config_twin_engine[] = {
     //         { -1.000000,  0.000000,  0.000000,  1.000000 },
     //         {  1.000000,  0.000000,  0.000000,  1.000000 },
@@ -458,19 +448,21 @@ MultirotorMixer::mix(float *outputs, unsigned space, uint16_t *status_reg)
     //         { -0.000000, -0.000000, -0.000000,  0.000000 },
     // };
 
-	    const Rotor config_twin_engine[] = {
-            { -1.000000,  0.000000,  1.000000,  1.000000 },
-            {  1.000000,  0.000000,  1.000000,  1.000000 },
-            {  0.000000,  1.000000, -1.000000,  1.000000 },
-            { -0.000000, -1.000000, -1.000000,  1.000000 },
-            { -0.000000, -0.000000, -0.000000,  1.000000 },
-            { -0.000000, -0.000000, -0.000000,  1.000000 },
-            { -0.000000, -0.000000, -0.000000,  1.000000 },
-            { -0.000000, -0.000000, -0.000000,  1.000000 },
+
+////////////////////TAILSITTER CONTROLLER FOR tailsitter.SDF TRANSFORMER MODEL
+    const Rotor config_twin_engine[] = {
+            { 1.000000,  0.000000,  0.000000,  1.000000 },
+            {  -1.000000,  0.000000,  0.000000,  1.000000 },
+            {  -1.000000,  0.000000,  0.000000,  1.000000 },
+            {  1.000000,  0.000000,  0.000000,  1.000000 },
+            {  0.000000,  0.000000, -0.000000,  0.000000 },
+            {  0.000000,  0.000000, -0.000000,  0.000000 },
+            { -0.000000,  0.000000, -0.000000,  0.000000 },
+            { -0.000000, -0.000000, -0.000000,  0.000000 },
     };
 
 	if (enable_transformation == true){
-		if (frame_state >= 0.1f){
+		if (false){//frame_state >= 0.1f){
 			_rotor_count = 8;
 			_rotors = quad_plus;
 		}
@@ -657,61 +649,61 @@ MultirotorMixer::mix(float *outputs, unsigned space, uint16_t *status_reg)
 	}
 //ADDED start
 
-	int error_counter = 0;
-	    // wait for sensor update of 1 file descriptor for 1000 ms (1 second)
-	    int poll_ret = px4_poll(fds, 1, 1000);
+	// int error_counter = 0;
+	//     // wait for sensor update of 1 file descriptor for 1000 ms (1 second)
+	//     int poll_ret = px4_poll(fds, 1, 1000);
 
-	    // handle the poll result
-	    if (poll_ret == 0)
-	    {
-		// this means none of our providers is giving us data
-		PX4_ERR("Got no data within a second");
+	//     // handle the poll result
+	//     if (poll_ret == 0)
+	//     {
+	// 	// this means none of our providers is giving us data
+	// 	PX4_ERR("Got no data within a second");
 
-	    }
-	    else if (poll_ret < 0)
-	    {
-		// this is seriously bad - should be an emergency
-		if (error_counter < 10 || error_counter % 50 == 0)
-		{
-		    // use a counter to prevent flooding (and slowing us down)
-		    PX4_ERR("ERROR return value from poll(): %d", poll_ret);
-		}
+	//     }
+	//     else if (poll_ret < 0)
+	//     {
+	// 	// this is seriously bad - should be an emergency
+	// 	if (error_counter < 10 || error_counter % 50 == 0)
+	// 	{
+	// 	    // use a counter to prevent flooding (and slowing us down)
+	// 	    PX4_ERR("ERROR return value from poll(): %d", poll_ret);
+	// 	}
 
-		error_counter++;
+	// 	error_counter++;
 
-	    }
-	    else
-	    {
+	//     }
+	//     else
+	//     {
 
-		if (fds[0].revents & POLLIN)
-		{
-		    // obtained data for the first file descriptor
-		    struct custom_msg_s raw;
-		    // copy sensors raw data into local buffer
-		    //PX4_ERR("Getting data... ");
-			//custom_sub = orb_subscribe(ORB_ID(custom_msg)); //added /repeated from above, shouldn't be here...
-		    orb_copy(ORB_ID(custom_msg), custom_sub, &raw);
+	// 	if (fds[0].revents & POLLIN)
+	// 	{
+	// 	    // obtained data for the first file descriptor
+	// 	    struct custom_msg_s raw;
+	// 	    // copy sensors raw data into local buffer
+	// 	    //PX4_ERR("Getting data... ");
+	// 		//custom_sub = orb_subscribe(ORB_ID(custom_msg)); //added /repeated from above, shouldn't be here...
+	// 	    orb_copy(ORB_ID(custom_msg), custom_sub, &raw);
 
-		    //useful for debugging:
-			/*
-		    PX4_INFO("Motor Values:\t%8.4f\t%8.4f\t%8.4f\t%8.4f",
-		         (double)raw.m0,
-		         (double)raw.m1,
-		         (double)raw.m2,
-		         (double)raw.m3);
-			*/
+	// 	    //useful for debugging:
+	// 		/*
+	// 	    PX4_INFO("Motor Values:\t%8.4f\t%8.4f\t%8.4f\t%8.4f",
+	// 	         (double)raw.m0,
+	// 	         (double)raw.m1,
+	// 	         (double)raw.m2,
+	// 	         (double)raw.m3);
+	// 		*/
 
-		    outputs[0] = (double)raw.m0;
-		    outputs[1] = (double)raw.m1;
-		    outputs[2] = (double)raw.m2;
-		    outputs[3] = (double)raw.m3;
+	// 	    outputs[0] = (double)raw.m0;
+	// 	    outputs[1] = (double)raw.m1;
+	// 	    outputs[2] = (double)raw.m2;
+	// 	    outputs[3] = (double)raw.m3;
 
-		    _outputs_prev[0] = (double)raw.m0;
-		    _outputs_prev[1] = (double)raw.m1;
-		    _outputs_prev[2] = (double)raw.m2;
-		    _outputs_prev[3] = (double)raw.m3;
-		}
-	    }
+	// 	    _outputs_prev[0] = (double)raw.m0;
+	// 	    _outputs_prev[1] = (double)raw.m1;
+	// 	    _outputs_prev[2] = (double)raw.m2;
+	// 	    _outputs_prev[3] = (double)raw.m3;
+	// 	}
+	//     }
 
 
 
