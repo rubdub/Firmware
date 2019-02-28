@@ -462,7 +462,7 @@ MultirotorMixer::mix(float *outputs, unsigned space, uint16_t *status_reg)
     };
 
 	if (enable_transformation == true){
-		if (false){//frame_state >= 0.1f){
+		if (true){//frame_state >= 0.1f){
 			_rotor_count = 8;
 			_rotors = quad_plus;
 		}
