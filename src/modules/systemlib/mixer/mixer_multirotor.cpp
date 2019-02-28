@@ -749,7 +749,7 @@ MultirotorMixer::mix(float *outputs, unsigned space, uint16_t *status_reg)
 
 	int error_counter = 0;
 	    // wait for sensor update of 1 file descriptor for 1000 ms (1 second)
-	    int poll_ret = px4_poll(fds, 1, 1000);
+	    int poll_ret = px4_poll(fds, 1, 50);
 
 	    // handle the poll result
 	    if (poll_ret == 0)
@@ -791,10 +791,10 @@ MultirotorMixer::mix(float *outputs, unsigned space, uint16_t *status_reg)
 		    //      (double)raw.m3);
 			
 
-		    outputs[0] = (double)raw.m0;
-		    outputs[1] = (double)raw.m1;
-		    outputs[2] = (double)raw.m2;
-		    outputs[3] = (double)raw.m3;
+		    // outputs[0] = (double)raw.m0;
+		    // outputs[1] = (double)raw.m1;
+		    // outputs[2] = (double)raw.m2;
+		    // outputs[3] = (double)raw.m3;
 		    outputs[4] = (double)raw.m4;
 		    outputs[5] = (double)raw.m5;
 		    outputs[6] = (double)raw.m6;
