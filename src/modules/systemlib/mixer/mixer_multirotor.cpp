@@ -424,6 +424,7 @@ MultirotorMixer::mix(float *outputs, unsigned space, uint16_t *status_reg)
 	bool enable_transformation = true;
     // float       frame_state = math::constrain(get_control(3, 5), -1.0f, 1.0f);
 //    float       elevon_state = math::constrain(get_control(3, 6), -1.0f, 1.0f);
+	frame_state = 1.0f;
 
     const Rotor quad_plus[] = {
             { -1.000000,  0.000000,  1.000000,  1.000000 },
@@ -436,17 +437,7 @@ MultirotorMixer::mix(float *outputs, unsigned space, uint16_t *status_reg)
             { -0.000000, -0.000000, -0.000000,  1.000000 },
     };
 
-    // const Rotor quad_plus[] = {
-	// 		{ -0.707107,  0.707107,  1.000000,  1.000000 },
-	// 		{  0.707107, -0.707107,  1.000000,  1.000000 },
-	// 		{  0.707107,  0.707107, -1.000000,  1.000000 },
-	// 		{ -0.707107, -0.707107, -1.000000,  1.000000 },
-    //         { -0.000000, -0.000000, -0.000000,  1.000000 },
-    //         { -0.000000, -0.000000, -0.000000,  1.000000 },
-    //         { -0.000000, -0.000000, -0.000000,  1.000000 },
-    //         { -0.000000, -0.000000, -0.000000,  1.000000 },
-    // };
-
+///////////////////// TAIL SITTER CONTROLLER USED FOR PHYSICAL PROTOTYPES!!!!!! CHECK THE SIGNS!!!
     // const Rotor config_twin_engine[] = {
     //         { -1.000000,  0.000000,  0.000000,  1.000000 },
     //         {  1.000000,  0.000000,  0.000000,  1.000000 },
@@ -458,15 +449,17 @@ MultirotorMixer::mix(float *outputs, unsigned space, uint16_t *status_reg)
     //         { -0.000000, -0.000000, -0.000000,  0.000000 },
     // };
 
-	    const Rotor config_twin_engine[] = {
-            { -1.000000,  0.000000,  1.000000,  1.000000 },
-            {  1.000000,  0.000000,  1.000000,  1.000000 },
-            {  0.000000,  1.000000, -1.000000,  1.000000 },
-            { -0.000000, -1.000000, -1.000000,  1.000000 },
-            { -0.000000, -0.000000, -0.000000,  1.000000 },
-            { -0.000000, -0.000000, -0.000000,  1.000000 },
-            { -0.000000, -0.000000, -0.000000,  1.000000 },
-            { -0.000000, -0.000000, -0.000000,  1.000000 },
+
+////////////////////TAILSITTER CONTROLLER FOR tailsitter.SDF TRANSFORMER MODEL
+    const Rotor config_twin_engine[] = {
+            { 1.000000,  0.000000,  0.000000,  1.000000 },
+            {  -1.000000,  0.000000,  0.000000,  1.000000 },
+            {  -1.000000,  0.000000,  0.000000,  1.000000 },
+            {  1.000000,  0.000000,  0.000000,  1.000000 },
+            {  0.000000,  0.000000, -0.000000,  0.000000 },
+            {  0.000000,  0.000000, -0.000000,  0.000000 },
+            { -0.000000,  0.000000, -0.000000,  0.000000 },
+            { -0.000000, -0.000000, -0.000000,  0.000000 },
     };
 
 	if (enable_transformation == true){
@@ -479,7 +472,7 @@ MultirotorMixer::mix(float *outputs, unsigned space, uint16_t *status_reg)
 			_rotor_count = 5;
 			_rotors = config_twin_engine;
 		}
-		PX4_ERR("_rotor_count: %d", _rotor_count);
+		// PX4_ERR("_rotor_count: %d", _rotor_count);
 
 	}
 
@@ -751,44 +744,44 @@ MultirotorMixer::mix(float *outputs, unsigned space, uint16_t *status_reg)
 	    // wait for sensor update of 1 file descriptor for 1000 ms (1 second)
 	    int poll_ret = px4_poll(fds, 1, 50);
 
-	    // handle the poll result
-	    if (poll_ret == 0)
-	    {
-		// this means none of our providers is giving us data
-		PX4_ERR("Got no data within a second");
+	//     // handle the poll result
+	//     if (poll_ret == 0)
+	//     {
+	// 	// this means none of our providers is giving us data
+	// 	PX4_ERR("Got no data within a second");
 
-	    }
-	    else if (poll_ret < 0)
-	    {
-		// this is seriously bad - should be an emergency
-		if (error_counter < 10 || error_counter % 50 == 0)
-		{
-		    // use a counter to prevent flooding (and slowing us down)
-		    PX4_ERR("ERROR return value from poll(): %d", poll_ret);
-		}
+	//     }
+	//     else if (poll_ret < 0)
+	//     {
+	// 	// this is seriously bad - should be an emergency
+	// 	if (error_counter < 10 || error_counter % 50 == 0)
+	// 	{
+	// 	    // use a counter to prevent flooding (and slowing us down)
+	// 	    PX4_ERR("ERROR return value from poll(): %d", poll_ret);
+	// 	}
 
-		error_counter++;
+	// 	error_counter++;
 
-	    }
-	    else
-	    {
+	//     }
+	//     else
+	//     {
 
-		if (fds[0].revents & POLLIN)
-		{
-		    // obtained data for the first file descriptor
-		    struct custom_msg_s raw;
-		    // copy sensors raw data into local buffer
-		    //PX4_ERR("Getting data... ");
-			//custom_sub = orb_subscribe(ORB_ID(custom_msg)); //added /repeated from above, shouldn't be here...
-		    orb_copy(ORB_ID(custom_msg), custom_sub, &raw);
+	// 	if (fds[0].revents & POLLIN)
+	// 	{
+	// 	    // obtained data for the first file descriptor
+	// 	    struct custom_msg_s raw;
+	// 	    // copy sensors raw data into local buffer
+	// 	    //PX4_ERR("Getting data... ");
+	// 		//custom_sub = orb_subscribe(ORB_ID(custom_msg)); //added /repeated from above, shouldn't be here...
+	// 	    orb_copy(ORB_ID(custom_msg), custom_sub, &raw);
 
-		    //useful for debugging:
+	// 	    //useful for debugging:
 			
-		    // PX4_INFO("Motor Values:\t%8.4f\t%8.4f\t%8.4f\t%8.4f",
-		    //      (double)raw.m0,
-		    //      (double)raw.m1,
-		    //      (double)raw.m2,
-		    //      (double)raw.m3);
+	// 	    // PX4_INFO("Motor Values:\t%8.4f\t%8.4f\t%8.4f\t%8.4f",
+	// 	    //      (double)raw.m0,
+	// 	    //      (double)raw.m1,
+	// 	    //      (double)raw.m2,
+	// 	    //      (double)raw.m3);
 			
 
 		    // outputs[0] = (double)raw.m0;
@@ -808,27 +801,46 @@ MultirotorMixer::mix(float *outputs, unsigned space, uint16_t *status_reg)
 				frame_state = 1.0f;
 				// _rotor_count = 8;
 
-		// 			PX4_ERR("frame_state: %d", (double)frame_state);
-		// PX4_ERR("outputs[4]: %d", (double)outputs[4]);
-		
-			// if ((double)raw.m4 > .1){
-			// 	frame_state = .9f;
-			// }
-			// else
-			// 	frame_state = -.9f;
+	// 	    // outputs[0] = outputs[0];
+	// 	    // outputs[1] = outputs[1];
+	// 	    // outputs[2] = outputs[2];
+	// 	    // outputs[3] = outputs[3];
 
-			// PX4_ERR("frame_state: %d", (float));
-					    PX4_INFO("Motor Values:\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8.4f",
-		         (double)outputs[0],
-		         (double)outputs[1],
-		         (double)outputs[2],
-		         (double)outputs[3],
-				 (double)outputs[4],
-		         (double)outputs[5],
-		         (double)outputs[6],
-		         (double)outputs[7]);
-		}
-	    }
+			
+	// 	    outputs[4] = (double)raw.m4;
+	// 	    outputs[5] = (double)raw.m5;
+	// 	    outputs[6] = (double)raw.m6;
+	// 	    outputs[7] = (double)raw.m7;
+
+	// 		if ((double)outputs[4] >= .1){
+	// 			// _rotor_count = 6;
+	// 			frame_state = -1.0f;
+	// 		}
+	// 		else
+	// 			frame_state = 1.0f;
+	// 			// _rotor_count = 8;
+
+	// 	// 			PX4_ERR("frame_state: %d", (double)frame_state);
+	// 	// PX4_ERR("outputs[4]: %d", (double)outputs[4]);
+		
+	// 		// if ((double)raw.m4 > .1){
+	// 		// 	frame_state = .9f;
+	// 		// }
+	// 		// else
+	// 		// 	frame_state = -.9f;
+
+	// 		// PX4_ERR("frame_state: %d", (float));
+	// 			// 	    PX4_INFO("Motor Values:\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8.4f",
+	// 	        //  (double)outputs[0],
+	// 	        //  (double)outputs[1],
+	// 	        //  (double)outputs[2],
+	// 	        //  (double)outputs[3],
+	// 			//  (double)outputs[4],
+	// 	        //  (double)outputs[5],
+	// 	        //  (double)outputs[6],
+	// 	        //  (double)outputs[7]);
+	// 	}
+	//     }
 
 
 
