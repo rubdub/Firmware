@@ -401,9 +401,9 @@ MultirotorMixer::mix(float *outputs, unsigned space, uint16_t *status_reg)
 
     //--------------------RD, Start of conditional geometry
 	bool enable_transformation = true;
-    float       frame_state = math::constrain(get_control(3, 5), -1.0f, 1.0f);
+    // float       frame_state = math::constrain(get_control(3, 5), -1.0f, 1.0f);
 //    float       elevon_state = math::constrain(get_control(3, 6), -1.0f, 1.0f);
-
+	float frame_state = -1.0f; // Forcing the frame state into tailsitter to free up a channel to be used for switching manual and position modes on the solar tailsitter. 
 
     const Rotor quad_plus[] = {
 			{ -0.707107,  0.707107,  1.000000,  1.000000 },
