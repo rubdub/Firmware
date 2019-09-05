@@ -402,7 +402,7 @@ MultirotorMixer::mix(float *outputs, unsigned space, uint16_t *status_reg)
     //--------------------RD, Start of conditional geometry
 	bool enable_transformation = true;
     float       frame_state = math::constrain(get_control(3, 5), -1.0f, 1.0f);
-//    float       elevon_state = math::constrain(get_control(3, 6), -1.0f, 1.0f);
+    // float       frame_state = math::constrain(get_control(3, 7), -1.0f, 1.0f);
 
     const Rotor quad_plus[] = {
             { -1.000000,  0.000000,  1.000000,  1.000000 },
@@ -415,14 +415,30 @@ MultirotorMixer::mix(float *outputs, unsigned space, uint16_t *status_reg)
             { -0.000000, -0.000000, -0.000000,  1.000000 },
     };
 
-    const Rotor config_twin_engine[] = {
-            { -1.000000,  0.000000,  0.000000,  1.000000 },
-            {  1.000000,  0.000000,  0.000000,  1.000000 },
-            {  1.000000,  0.000000,  0.000000,  1.000000 },
-            { -1.000000,  0.000000,  0.000000,  1.000000 },
+	float tempVar = cos(frame_state);
+	// float tempVar = (float)cos(frame_state); // Overflows flash by 1304 bytes. Commenting out drivers doesn't seem to make a difference. 
+
+    // const Rotor config_twin_engine[] = {
+    //         { -1.000000,  0.000000,  0.000000,  1.000000 },
+    //         {  1.000000,  0.000000,  0.000000,  1.000000 },
+    //         {  1.000000,  0.000000,  0.000000,  1.000000 },
+    //         { -1.000000,  0.000000,  0.000000,  1.000000 },
+    //         {  0.000000,  0.000000, -0.000000,  0.000000 },
+    //         {  0.000000,  0.000000, -0.000000,  0.000000 },
+    //         { -0.000000,  0.000000, -0.000000,  0.000000 },
+    //         { -0.000000, -0.000000, -0.000000,  0.000000 },
+    // };
+
+	// Rectangle Configuration:
+
+	Rotor config_twin_engine[] = {
+            { -0.948711,  0.316146,  1.000000,  1.000000 },
+        	{  0.894389, -0.447291,  1.000000,  1.000000 },
+        	{  0.948711,  0.316146, -1.000000,  1.000000 },
+        	{ -0.894389, -0.447291, -1.000000,  1.000000 },
             {  0.000000,  0.000000, -0.000000,  0.000000 },
-            {  0.000000,  0.000000, -0.000000,  0.000000 },
-            { -0.000000,  0.000000, -0.000000,  0.000000 },
+            {  0.000000,  1.000000, 1.000000,  0.000000 },
+            { -0.000000,  1.000000, -1.000000,  0.000000 },
             { -0.000000, -0.000000, -0.000000,  0.000000 },
     };
 
@@ -432,7 +448,8 @@ MultirotorMixer::mix(float *outputs, unsigned space, uint16_t *status_reg)
 			_rotors = quad_plus;
 		}
 		else {
-			_rotor_count = 4;
+			// _rotor_count = 4; 
+			_rotor_count = 4; // To allow selective control over the control surfaces for variable geometry. 
 			_rotors = config_twin_engine;
 		}
 	}
@@ -445,7 +462,7 @@ MultirotorMixer::mix(float *outputs, unsigned space, uint16_t *status_reg)
 	}
 
 	if (triggerflag == true){
-		roll = 0.0f;
+		roll = 0.0f * tempVar;
 		pitch = 0.0f;
 		yaw = 0.0f;
 	}		
